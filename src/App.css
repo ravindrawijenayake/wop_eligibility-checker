@@ -1,0 +1,171 @@
+.app-container {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(to right, #818cf8, #c084fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+}
+
+.header p {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
+.main-content {
+  width: 100%;
+  max-width: 800px;
+}
+
+.wizard-card {
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Radio buttons stylish setup */
+.radio-group {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.radio-card {
+  display: block;
+  cursor: pointer;
+}
+
+.radio-card input {
+  display: none;
+}
+
+.radio-card-content {
+  padding: 1rem 1.5rem;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.radio-card input:checked + .radio-card-content {
+  border-color: var(--primary);
+  background: rgba(79, 70, 229, 0.1);
+}
+
+.radio-title {
+  font-weight: 500;
+  display: block;
+  font-size: 1.1rem;
+}
+
+.radio-desc {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.step-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--surface-border);
+  transition: all 0.3s ease;
+}
+
+.step-dot.active {
+  background: var(--primary);
+  transform: scale(1.2);
+}
+
+.form-row {
+  margin-bottom: 1.5rem;
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--surface-border);
+}
+
+.file-upload-zone {
+  border: 2px dashed var(--surface-border);
+  border-radius: var(--radius-lg);
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.file-upload-zone:hover {
+  border-color: var(--primary);
+  background: rgba(79, 70, 229, 0.05);
+}
+
+.file-upload-icon {
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.upload-text {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.upload-hint {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.tag {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+  margin-bottom: 1rem;
+}
+
+.tag.success {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+}
+
+.tag.warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: #fbbf24;
+}
+
+.tag.error {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error);
+}
