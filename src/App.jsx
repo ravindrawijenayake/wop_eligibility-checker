@@ -248,6 +248,8 @@ function App() {
     endedWithLossOfPension: false, lossOfPensionDate: '', lossOfPensionReason: '',
     uncountablePeriods: [],
     reckonableYears: '', reckonableMonths: '', reckonableDays: '',
+    serviceSector: 'Civil', serviceCategory: '', militaryConsentDate: '', retiredDueToTerrorism: false,
+    officerNumber: '', deathCertNo: '',
     contributorMarriagesCount: 1, contributorMarriages: [],
     identicalApplicantMarriage: false, app_contributor_marriage_index: 0,
     applicantMarriagesCount: 1, applicantMarriages: [],
@@ -543,7 +545,9 @@ function App() {
       if (!data.nic) errs.p1nic = "Required";
       if (!data.dob) errs.p1dob = "Required";
       if (!data.isMissingPerson && !data.dod) errs.p1dod = "Required";
+      if (!data.isMissingPerson && data.dod && !data.deathCertNo) errs.p1deathCert = t('err_death_cert_required');
       if (data.isMissingPerson && !data.policeComplaintDate) errs.p1police = "Required";
+      if (data.serviceSector === 'Forces' && !data.officerNumber) errs.p1officerNo = t('err_officer_number_required');
 
       if (Object.keys(errs).length > 0) {
         setFormErrors({ ...errs, global: t('err_global_format') });
@@ -606,7 +610,9 @@ function App() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div className="form-row"><label className="label">{t('lbl_dob')}</label><input type="date" min="1900-01-01" className={`form-input ${formErrors.p1dob ? 'border-[2px] border-error text-error' : ''}`} value={data.dob} onChange={e => { updateData('dob', e.target.value); setFormErrors(p => ({ ...p, p1dob: null })); }} /></div>
+          <div className="form-row"><label className="label">{t('lbl_dob')}</label><input type="date" min="1900-01-01" className={`form-input ${formErrors.p1dob ? 'border-[2px] border-error text-error' : ''}`} value={data.dob} onChange={e => { updateData('dob', e.target.value); setFormErrors(p => ({ ...p, p1dob: null })); }} />
+            {data.dob && <span className="inline-block mt-1 px-2 py-0.5 bg-primary text-white text-xs font-bold rounded">{t('lbl_age')}: {computeDynamicAge(data.dob)}</span>}
+          </div>
           <div className="form-row">
             <label className="label">{t('lbl_nic')}</label>
             <input type="text" className={`form-input ${formErrors.p1nic ? 'border-[2px] border-error text-error' : ''}`} value={data.nic} onChange={e => { updateData('nic', e.target.value); setFormErrors(p => ({ ...p, p1nic: null })); }} />
@@ -630,6 +636,13 @@ function App() {
           {data.isPensioner && (
             <div className="form-row animate-fade-in"><label className="label">{t('lbl_dor')}</label><input type="date" min="1900-01-01" className="form-input" value={data.dor} onChange={e => updateData('dor', e.target.value)} /></div>
           )}
+          {!data.isMissingPerson && data.dod && (
+            <div className="form-row animate-fade-in">
+              <label className="label">{t('lbl_death_cert_no')}</label>
+              <input type="text" className={`form-input ${formErrors.p1deathCert ? 'border-[2px] border-error text-error' : ''}`} value={data.deathCertNo} onChange={e => { updateData('deathCertNo', e.target.value); setFormErrors(p => ({ ...p, p1deathCert: null })); }} />
+              {formErrors.p1deathCert && <div className="text-error text-xs font-bold mt-1">{formErrors.p1deathCert}</div>}
+            </div>
+          )}
         </div>
 
         <div className="button-group flex justify-end"><div></div><button className="btn" onClick={handleNext}>{t('btn_next_section_a')} <ChevronRight size={20} /></button></div>
@@ -644,6 +657,32 @@ function App() {
       <div className="animate-fade-in">
         <div className="tag">{t('section_a_title')}</div>
         {formErrors.global && <div className="p-3 bg-red-100 text-error border-[2px] border-error mb-4 font-bold rounded animate-fade-in">{formErrors.global}</div>}
+
+        <div className="mb-6 p-4 bg-surface-alt border border-subtle rounded">
+          <label className="label mb-2">{t('lbl_service_sector')}</label>
+          <div className="flex gap-4 mb-4">
+            <label className="cursor-pointer"><input type="radio" checked={data.serviceSector === 'Civil'} onChange={() => { updateData('serviceSector', 'Civil'); updateData('serviceCategory', ''); }} /> {t('opt_civil')}</label>
+            <label className="cursor-pointer"><input type="radio" checked={data.serviceSector === 'Forces'} onChange={() => updateData('serviceSector', 'Forces')} /> {t('opt_forces')}</label>
+          </div>
+          {data.serviceSector === 'Forces' && (
+            <div>
+              <label className="label mb-2 text-primary">{t('lbl_service_category')}</label>
+              <div className="flex gap-4">
+                <label className="cursor-pointer"><input type="radio" checked={data.serviceCategory === 'Regular Force'} onChange={() => updateData('serviceCategory', 'Regular Force')} /> {t('opt_regular_force')}</label>
+                <label className="cursor-pointer"><input type="radio" checked={data.serviceCategory === 'Volunteer Force'} onChange={() => updateData('serviceCategory', 'Volunteer Force')} /> {t('opt_volunteer_force')}</label>
+              </div>
+              <div className="mt-4">
+                {((data.serviceCategory === 'Regular Force' && data.doa && data.doa < '1968-09-30') || 
+                  (data.serviceCategory === 'Volunteer Force' && data.doa && data.doa < (data.gender === 'Male' ? '1981-09-01' : '1983-08-01'))) && (
+                  <div className="form-row">
+                    <label className="label text-amber font-bold">{t('lbl_military_consent_date')}</label>
+                    <input type="date" className="form-input" value={data.militaryConsentDate} onChange={e => updateData('militaryConsentDate', e.target.value)} />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="form-row">
@@ -679,7 +718,24 @@ function App() {
               </div>
             </div>
           )}
+          {data.serviceSector === 'Forces' && data.isPensioner && (
+            <div className="mt-4 p-4 bg-amber-light border border-amber rounded animate-fade-in">
+              <label className="label text-amber font-bold mb-2">{t('lbl_retired_due_to_terrorism')}</label>
+              <div className="flex gap-4">
+                <label className="text-sm cursor-pointer"><input type="radio" checked={data.retiredDueToTerrorism === true} onChange={() => updateData('retiredDueToTerrorism', true)} /> {t('opt_yes')}</label>
+                <label className="text-sm cursor-pointer"><input type="radio" checked={data.retiredDueToTerrorism === false} onChange={() => updateData('retiredDueToTerrorism', false)} /> {t('msg_no')}</label>
+              </div>
+            </div>
+          )}
         </div>
+
+        {data.serviceSector === 'Forces' && (
+          <div className="mb-6 p-4 bg-surface-alt border border-subtle rounded animate-fade-in">
+            <label className="label font-bold">{t('lbl_officer_number')} <span className="text-error">*</span></label>
+            <input type="text" className={`form-input max-w-sm ${formErrors.p1officerNo ? 'border-[2px] border-error text-error' : ''}`} value={data.officerNumber} onChange={e => { updateData('officerNumber', e.target.value); setFormErrors(p => ({ ...p, p1officerNo: null })); }} />
+            {formErrors.p1officerNo && <div className="text-error text-xs font-bold mt-1">{formErrors.p1officerNo}</div>}
+          </div>
+        )}
 
         {data.gender === 'Female' && (
           <div className="mb-6 p-4 bg-surface-alt border border-subtle rounded">
@@ -722,7 +778,25 @@ function App() {
               }
             }
             if (is45 && !data.cabinetDate) { handleRejection(t('err_no_cabinet_approval')); return; }
-            if (data.gender === 'Female' && data.doa < '1983-08-01' && (!data.femaleConsent || data.femaleConsent === '')) { alert(t('err_fill_female_consent')); return; }
+            if (data.serviceSector === 'Civil') {
+              if (data.gender === 'Female' && data.doa < '1983-08-01' && (!data.femaleConsent || data.femaleConsent === '')) { alert(t('err_fill_female_consent')); return; }
+            } else if (data.serviceSector === 'Forces') {
+              if (!data.serviceCategory) { alert(t('err_global_format')); return; }
+              if (data.serviceCategory === 'Regular Force') {
+                if (data.doa < '1968-09-30' && (!data.militaryConsentDate || data.militaryConsentDate > '2006-06-30')) {
+                  if (!data.militaryConsentDate) alert(t('err_military_consent_missing'));
+                  else handleRejection(t('err_military_consent_late_regular'));
+                  return;
+                }
+              } else if (data.serviceCategory === 'Volunteer Force') {
+                let cutoffDate = data.gender === 'Male' ? '1981-09-01' : '1983-08-01';
+                if (data.doa < cutoffDate && (!data.militaryConsentDate || data.militaryConsentDate > '2012-12-31')) {
+                  if (!data.militaryConsentDate) alert(t('err_military_consent_missing'));
+                  else handleRejection(t('err_military_consent_late_volunteer'));
+                  return;
+                }
+              }
+            }
             if (data.isPermanent === false && !(data.diedDueToTerrorism && !data.isPensioner)) {
               handleRejection(t('err_not_permanent'));
               return;
@@ -876,6 +950,7 @@ function App() {
           s_name: '', s_nic: '', s_alive: true, s_dod: '', s_div_date: '', s_dob: '',
           s_gov_emp: false, s_gov_reg_no: '', s_claiming_wop: false, s_wop_pen_no: '',
           s_pen_own: false, s_pen_own_no: '',
+          isUnregistered: false, unreg_evidence: [], unreg_notes: '',
           childrenCount: 0, children: []
         });
       } else arr = arr.slice(0, num);
@@ -888,6 +963,7 @@ function App() {
         date: '', cert: '', div: '', law: 'General', s_name: '', s_nic: '', s_alive: true, s_dod: '', s_div_date: '', s_dob: '',
         s_gov_emp: false, s_gov_reg_no: '', s_claiming_wop: false, s_wop_pen_no: '',
         s_pen_own: false, s_pen_own_no: '',
+        isUnregistered: false, unreg_evidence: [], unreg_notes: '',
         childrenCount: 0, children: []
       };
       arr[i][field] = val;
@@ -899,6 +975,7 @@ function App() {
         date: '', cert: '', div: '', law: 'General', s_name: '', s_nic: '', s_alive: true, s_dod: '', s_div_date: '', s_dob: '',
         s_gov_emp: false, s_gov_reg_no: '', s_claiming_wop: false, s_wop_pen_no: '',
         s_pen_own: false, s_pen_own_no: '',
+        isUnregistered: false, unreg_evidence: [], unreg_notes: '',
         childrenCount: 0, children: []
       });
       setTimeout(() => updateData(arrKey, init), 0);
@@ -963,13 +1040,63 @@ function App() {
                   <input type="date" min="1900-01-01" className={`form-input ${formErrors[`${arrKey}_${i}_date`] ? 'border-error text-error' : ''}`} value={m.date || ''} onChange={e => { updateMar(i, 'date', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_date`]: null })) }} />
                   {formErrors[`${arrKey}_${i}_date`] && <div className="text-error text-xs font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_date`]}</div>}
                 </div>
+                {/* Registration toggle */}
                 <div className="form-row m-0">
-                  <label className="label">{t('lbl_cert_number')}</label>
-                  <input type="text" className={`form-input ${formErrors[`${arrKey}_${i}_cert`] ? 'border-error text-error' : ''}`} value={m.cert || ''} onChange={e => { updateMar(i, 'cert', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_cert`]: null })) }} />
-                  {formErrors[`${arrKey}_${i}_cert`] && <div className="text-error text-[10px] font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_cert`]}</div>}
+                  <label className="label">{t('lbl_marriage_registered')}</label>
+                  <select className="form-input" value={m.isUnregistered ? 'unregistered' : 'registered'} onChange={e => updateMar(i, 'isUnregistered', e.target.value === 'unregistered')}>
+                    <option value="registered">{t('opt_registered')}</option>
+                    <option value="unregistered">{t('opt_unregistered')}</option>
+                  </select>
                 </div>
-                <div className="form-row m-0"><label className="label">{t('lbl_reg_division')}</label><input type="text" className="form-input" value={m.div || ''} onChange={e => updateMar(i, 'div', e.target.value)} /></div>
+                {!m.isUnregistered ? (
+                  <div className="form-row m-0">
+                    <label className="label">{t('lbl_cert_number')}</label>
+                    <input type="text" className={`form-input ${formErrors[`${arrKey}_${i}_cert`] ? 'border-error text-error' : ''}`} value={m.cert || ''} onChange={e => { updateMar(i, 'cert', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_cert`]: null })) }} />
+                    {formErrors[`${arrKey}_${i}_cert`] && <div className="text-error text-[10px] font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_cert`]}</div>}
+                  </div>
+                ) : (
+                  <div className="form-row m-0">
+                    <label className="label text-amber">{t('lbl_cert_number_optional')}</label>
+                    <input type="text" className="form-input border-amber" value={m.cert || ''} onChange={e => updateMar(i, 'cert', e.target.value)} />
+                  </div>
+                )}
               </div>
+              <div className="form-row m-0 mb-4">
+                <label className="label">{t('lbl_reg_division')}</label><input type="text" className="form-input" value={m.div || ''} onChange={e => updateMar(i, 'div', e.target.value)} />
+              </div>
+
+              {/* Unregistered marriage evidence panel */}
+              {m.isUnregistered && (
+                <div className="mb-4 p-4 bg-amber-light border-2 border-amber rounded-xl animate-fade-in">
+                  <h4 className="font-bold text-amber flex items-center gap-2 mb-2"><AlertTriangle size={18} /> {t('lbl_unregistered_info')}</h4>
+                  <p className="text-sm font-bold text-amber mb-3" style={{whiteSpace:'pre-line'}}>{t('msg_unregistered_rule')}</p>
+                  <div className="p-3 bg-red-50 border border-error rounded mb-3">
+                    <p className="text-xs font-bold text-error">{t('msg_unregistered_dg_note')}</p>
+                  </div>
+                  <label className="label text-amber font-bold mb-2">{t('lbl_unregistered_evidence_types')}</label>
+                  {[
+                    ['electoral', t('opt_evidence_electoral')],
+                    ['birth_cert', t('opt_evidence_birth_cert')],
+                    ['affidavit', t('opt_evidence_affidavit')],
+                    ['institution', t('opt_evidence_institution')],
+                    ['witnesses', t('opt_evidence_witnesses')],
+                    ['custom_cert', t('opt_evidence_custom_cert')]
+                  ].map(([key, label]) => (
+                    <label key={key} className="flex items-start gap-2 mb-2 cursor-pointer text-sm font-bold text-[#92400e]">
+                      <input type="checkbox" className="mt-0.5 min-w-[16px]" checked={(m.unreg_evidence || []).includes(key)}
+                        onChange={e => {
+                          const cur = m.unreg_evidence || [];
+                          updateMar(i, 'unreg_evidence', e.target.checked ? [...cur, key] : cur.filter(x => x !== key));
+                        }} />
+                      {label}
+                    </label>
+                  ))}
+                  <div className="form-row mt-3">
+                    <label className="label text-amber">{t('lbl_unregistered_notes')}</label>
+                    <textarea className="form-input min-h-[64px] text-sm" value={m.unreg_notes || ''} onChange={e => updateMar(i, 'unreg_notes', e.target.value)} />
+                  </div>
+                </div>
+              )}
 
               {!isApplicantMode && data.dor && m.date && m.date > data.dor && (
                 <div className="bg-amber-light text-amber border border-amber p-2 rounded text-sm font-bold mb-4">
@@ -985,7 +1112,9 @@ function App() {
                   <input type="text" placeholder={t('lbl_spouse_nic')} className={`form-input ${formErrors[`${arrKey}_${i}_s_nic`] ? 'border-error text-error' : ''}`} value={m.s_nic || ''} onChange={e => { updateMar(i, 's_nic', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_nic`]: null })) }} />
                   {formErrors[`${arrKey}_${i}_s_nic`] && <div className="text-error text-xs font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_s_nic`]}</div>}
                 </div>
-                <div className="form-row"><label className="label text-muted text-xs">{t('lbl_spouse_dob')}</label><input type="date" min="1900-01-01" className={`form-input ${formErrors[`${arrKey}_${i}_s_dob`] ? 'border-error text-error' : ''}`} title={t('lbl_spouse_dob')} value={m.s_dob || ''} onChange={e => { updateMar(i, 's_dob', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_dob`]: null })); }} /></div>
+                <div className="form-row"><label className="label text-muted text-xs">{t('lbl_spouse_dob')}</label><input type="date" min="1900-01-01" className={`form-input ${formErrors[`${arrKey}_${i}_s_dob`] ? 'border-error text-error' : ''}`} title={t('lbl_spouse_dob')} value={m.s_dob || ''} onChange={e => { updateMar(i, 's_dob', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_dob`]: null })); }} />
+                  {m.s_dob && <span className="inline-block mt-1 px-2 py-0.5 bg-primary text-white text-xs font-bold rounded">{t('lbl_age')}: {computeDynamicAge(m.s_dob)}</span>}
+                </div>
               </div>
 
               <div className="grid grid-cols-3 gap-4 mb-4 bg-gray-50 border border-subtle p-3 rounded">
@@ -1222,7 +1351,9 @@ function App() {
             let fatals = [];
             for (let i = 0; i < data.contributorMarriages.length; i++) {
               let m = data.contributorMarriages[i];
-              if (data.dor && m.date && m.date > data.dor) {
+              const ageAtMarriage = m.date && data.dob ? computeAgeAtDate(data.dob, m.date) : '';
+              const allowedPostRet = data.serviceSector === 'Forces' && data.retiredDueToTerrorism && ageAtMarriage !== '' && ageAtMarriage < 55;
+              if (data.dor && m.date && m.date > data.dor && !allowedPostRet) {
                 fatals.push(`${t('lbl_marriage_record_n')} ${i + 1}: ${t('err_fatal_marriage_post_ret')}`);
               }
               if (m.cert && !/^\d+$/.test(m.cert)) {
@@ -1334,7 +1465,9 @@ function App() {
           let errs = {};
           let fatals = [];
           for (let i = 0; i < data.applicantMarriages.length; i++) {
-            if (data.dor && data.applicantMarriages[i].date > data.dor) {
+            const ageAtMarriage = data.applicantMarriages[i].date && data.dob ? computeAgeAtDate(data.dob, data.applicantMarriages[i].date) : '';
+            const allowedPostRet = data.serviceSector === 'Forces' && data.retiredDueToTerrorism && ageAtMarriage !== '' && ageAtMarriage < 55;
+            if (data.dor && data.applicantMarriages[i].date > data.dor && !allowedPostRet) {
               fatals.push(`${t('lbl_marriage_idx')} ${i + 1}: ${t('err_applicant_marriage_post_ret')}`);
             }
             if (data.applicantMarriages[i].cert && !/^\d+$/.test(data.applicantMarriages[i].cert)) {
@@ -1744,12 +1877,19 @@ function App() {
 
             {orphansList.filter(o => o.isEligibleDisabled).map(o => {
               const isDeferred = !spouseLostPrimary && o.marriageIndex === applicantMarriageIndex;
+              const hasMultipleOrphans = orphansList.some(other => !other.isEligibleDisabled && other.marriageIndex === o.marriageIndex);
               return (
               <div key={o.childId} className="mb-6 p-4 border border-indigo-200 bg-indigo-50 rounded animate-fade-in shadow-sm">
                 <h3 className="text-indigo-800 font-bold flex items-center gap-2 mb-2"><Activity size={20} /> {t('lbl_disabled_pension_auth')} {o.name || t('lbl_unnamed_dependent')}</h3>
                 <p className="text-sm font-bold text-indigo-900" style={{whiteSpace: 'pre-line'}}>
                   {isDeferred ? t('msg_disabled_deferred').replace('{date}', o.med_board_date || 'Pending') : t('msg_disabled_commencement').replace('{date}', o.med_board_date || 'Pending')}
                 </p>
+                {hasMultipleOrphans && (
+                  <div className="mt-4 p-3 bg-white border border-indigo-200 rounded shadow-sm">
+                    <h4 className="font-bold text-indigo-900 text-sm mb-1">{t('lbl_temporary_hold_rule')}</h4>
+                    <p className="text-xs text-indigo-800 leading-relaxed font-medium">{t('msg_temporary_hold_desc')}</p>
+                  </div>
+                )}
               </div>
             )})}
 
@@ -1780,6 +1920,14 @@ function App() {
                   <Shield size={20} className="mt-0.5 shrink-0" />
                   <p>{authWarning.msg}</p>
                 </div>
+              </div>
+            )}
+
+            {overpaidMonths > 0 && (
+              <div className="mb-6 p-4 border-2 border-error bg-red-50 rounded-lg">
+                <h4 className="font-bold text-error flex items-center gap-2 mb-1"><AlertTriangle size={18} /> {t('lbl_overpayment_summary')}</h4>
+                <p className="text-sm font-bold text-error">{t('msg_overpayment_months').replace('{n}', '').replace('{months}', overpaidMonths)}: <span className="text-2xl">{overpaidMonths}</span> {overpaidMonths > 1 ? t('lbl_months') : t('lbl_month')}</p>
+                <p className="text-xs text-error mt-1">{t('msg_overpayment_recovery_note')}</p>
               </div>
             )}
 
@@ -1854,6 +2002,7 @@ function App() {
               <button className="btn bg-[#334155] border-none text-[#ffffff] text-sm" onClick={() => handlePrint('info')}>{t('btn_print_app_summary')}</button>
               <button className="btn bg-[#334155] border-none text-[#ffffff] text-sm" onClick={() => handlePrint('docs')}>{t('btn_print_docs_list')}</button>
               <button className="btn bg-[#0284c7] border-none text-[#ffffff] text-sm" onClick={() => handlePrint('output')}>{t('btn_print_eligibility_report')}</button>
+              <button className="btn bg-[#7c3aed] border-none text-[#ffffff] text-sm" onClick={() => handlePrint('eligibility')}>{t('btn_print_eligibility_determination')}</button>
             </div>
             <div className="flex justify-center gap-4">
               <button className="btn btn-secondary border border-subtle text-primary" onClick={() => resetApp()}>{t('btn_return_dashboard')}</button>
@@ -2054,6 +2203,13 @@ function App() {
             {data.pensionNotCommenced && (
               <p style={{ fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.5rem', color: '#d97706' }}>{t('msg_pension_not_commenced_note')}</p>
             )}
+            {overpaidMonths > 0 && (
+              <div style={{ marginTop: '1rem', padding: '0.75rem', border: '2px solid #dc2626', borderRadius: '6px', background: '#fef2f2' }}>
+                <p style={{ fontWeight: 800, color: '#dc2626', marginBottom: '0.25rem', fontSize: '0.9rem' }}>⚠ {t('lbl_overpayment_summary')}</p>
+                <p style={{ fontWeight: 700, color: '#dc2626', fontSize: '0.85rem' }}>{t('msg_overpayment_months').replace('{n}', '').replace('{months}', overpaidMonths)}: {overpaidMonths} {overpaidMonths > 1 ? 'Months' : 'Month'}</p>
+                <p style={{ fontSize: '0.78rem', color: '#b91c1c', marginTop: '0.25rem' }}>{t('msg_overpayment_recovery_note')}</p>
+              </div>
+            )}
           </div>
 
           {/* --- PRINT: DOCUMENTS LIST --- */}
@@ -2180,6 +2336,78 @@ function App() {
               </div>
             </div>
           </div>
+
+          {/* --- PRINT: ELIGIBILITY DETERMINATION REPORT ONLY --- */}
+          <div className={`print-only ${printMode === 'eligibility' ? 'print-active' : ''}`}>
+            <div style={{ textAlign: 'center', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '3px double #7c3aed' }}>
+              <h1 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#7c3aed', margin: 0 }}>{t('lbl_wop_system')}</h1>
+              <p style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569', margin: '0.25rem 0' }}>{t('lbl_wop_pensions_division')}</p>
+              <p style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1e293b', margin: '0.25rem 0' }}>{t('btn_print_eligibility_determination')}</p>
+              <p style={{ fontSize: '0.75rem', color: '#64748b' }}>{t('lbl_contributor')}: {data.name || t('msg_na')} | {t('lbl_nic')}: {data.nic || t('msg_na')} | {t('lbl_ref')}{data.memberNumber || t('msg_na')}{t('lbl_generated')}{new Date().toLocaleDateString('en-GB')}</p>
+            </div>
+
+            {/* Beneficiary Table */}
+            <div style={{ border: '2px solid #7c3aed', borderRadius: '6px', padding: '0.75rem', marginBottom: '1.5rem' }}>
+              <h3 style={{ fontWeight: 700, color: '#7c3aed', marginBottom: '0.5rem', fontSize: '1rem' }}>{t('lbl_statutory_beneficiary_report')}</h3>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid #7c3aed', fontWeight: 700 }}>
+                    <th style={{ padding: '0.4rem', textAlign: 'left' }}>{t('th_beneficiary_class')}</th>
+                    <th style={{ padding: '0.4rem', textAlign: 'left' }}>{t('th_name')}</th>
+                    <th style={{ padding: '0.4rem', textAlign: 'left' }}>{t('th_allocated_share')}</th>
+                    <th style={{ padding: '0.4rem', textAlign: 'left' }}>{t('th_reference_logic')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {showSpouseInTable && (
+                    <tr style={{ borderBottom: '1px solid #cbd5e1', background: '#f5f3ff' }}>
+                      <td style={{ padding: '0.4rem', fontWeight: 700 }}>{distScenario === 'REMARRIED_SPOUSE_50' ? t('lbl_widow_remarried') : t('lbl_widow')}</td>
+                      <td style={{ padding: '0.4rem' }}>{applicantSpouseRecord?.s_name || t('lbl_validated_primary_spouse')}</td>
+                      <td style={{ padding: '0.4rem', fontWeight: 700, color: '#7c3aed' }}>{spouseShare}%</td>
+                      <td style={{ padding: '0.4rem', fontSize: '0.78rem' }}>{distScenario}</td>
+                    </tr>
+                  )}
+                  {ActiveOrphansToDisplay.map((o, i) => (
+                    <tr key={i} style={{ borderBottom: '1px solid #cbd5e1', background: i % 2 === 0 ? '#ffffff' : '#faf5ff' }}>
+                      <td style={{ padding: '0.4rem', fontWeight: 600 }}>{o.marriageIndex === applicantMarriageIndex ? t('lbl_orphan') : t('lbl_prior_orphan')}{o.isEligibleDisabled ? ' ★' : ''}</td>
+                      <td style={{ padding: '0.4rem' }}>{o.name || t('msg_unnamed')}</td>
+                      <td style={{ padding: '0.4rem', fontWeight: 700, color: '#7c3aed' }}>{ActiveOrphansToDisplay.length === 1 ? orphanPool : (orphanPool / ActiveOrphansToDisplay.length).toFixed(1)}%</td>
+                      <td style={{ padding: '0.4rem', fontSize: '0.78rem' }}>{t('lbl_age')}: {computeDynamicAge(o.dob)} | {o.occ}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Disabled Orphan Note */}
+            {orphansList.filter(o => o.isEligibleDisabled).map((o, i) => (
+              <div key={i} style={{ padding: '0.75rem', border: '1px solid #4f46e5', borderRadius: '6px', marginBottom: '1rem', background: '#eef2ff' }}>
+                <p style={{ fontWeight: 700, color: '#4338ca', fontSize: '0.85rem' }}>★ {t('lbl_disabled_pension_auth')}: {o.name || t('lbl_unnamed_dependent')}</p>
+                <p style={{ fontSize: '0.78rem', color: '#3730a3', marginTop: '0.25rem' }}>{t('lbl_temporary_hold_rule')}</p>
+              </div>
+            ))}
+
+            {/* Overpayment */}
+            {overpaidMonths > 0 && (
+              <div style={{ padding: '0.75rem', border: '2px solid #dc2626', borderRadius: '6px', marginBottom: '1rem', background: '#fef2f2' }}>
+                <p style={{ fontWeight: 800, color: '#dc2626', fontSize: '0.9rem' }}>⚠ {t('lbl_overpayment_summary')}: {overpaidMonths} {overpaidMonths > 1 ? 'Months' : 'Month'}</p>
+                <p style={{ fontSize: '0.78rem', color: '#b91c1c', marginTop: '0.25rem' }}>{t('msg_overpayment_recovery_note')}</p>
+              </div>
+            )}
+
+            {/* Signature Blocks */}
+            <div style={{ marginTop: '3rem', display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+              <div style={{ width: '45%', borderTop: '1px solid #000', paddingTop: '0.5rem', textAlign: 'center' }}>
+                <p style={{ fontWeight: 700 }}>{t('lbl_applicant_signature')}</p>
+                <p style={{ color: '#475569' }}>{t('lbl_date_line')}</p>
+              </div>
+              <div style={{ width: '45%', borderTop: '1px solid #000', paddingTop: '0.5rem', textAlign: 'center' }}>
+                <p style={{ fontWeight: 700 }}>{t('lbl_authorized_officer')}</p>
+                <p style={{ color: '#475569' }}>{t('lbl_stamp_date')}</p>
+              </div>
+            </div>
+          </div>
+
           {/* ===== END PRINTABLE SECTIONS ===== */}
         </>
       );

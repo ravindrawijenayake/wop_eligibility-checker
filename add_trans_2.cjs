@@ -264,8 +264,8 @@ const newData = {
 ['en', 'si', 'ta'].forEach(lang => {
   const file = `./src/locales/${lang}.json`;
   let existing = {};
-  if(fs.existsSync(file)) {
-      existing = JSON.parse(fs.readFileSync(file, 'utf8'));
+  if (fs.existsSync(file)) {
+    existing = JSON.parse(fs.readFileSync(file, 'utf8'));
   }
   const updated = { ...existing, ...newData[lang] };
   fs.writeFileSync(file, JSON.stringify(updated, null, 2));

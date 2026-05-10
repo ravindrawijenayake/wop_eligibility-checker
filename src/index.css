@@ -185,5 +185,5 @@ body {
   color: var(--primary); text-decoration: none; display: inline-block;
 }
 
-.login-footer a:hover { text-decoration: underline; }
 .login-footer p { margin-bottom: 0.5rem; }
+
