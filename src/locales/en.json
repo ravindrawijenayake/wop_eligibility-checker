@@ -397,5 +397,7 @@
   "opt_evidence_custom_cert": "Customary Marriage Certificate (if any)",
   "lbl_unregistered_notes": "Additional Notes / Evidence Description",
   "msg_unregistered_dg_note": "⚠ Note: Unregistered marriages require Director General (DG) approval before W&OP benefits can be formally granted.",
-  "lbl_cert_number_optional": "Certificate / Registration No. (if any)"
+  "lbl_cert_number_optional": "Certificate / Registration No. (if any)",
+  "lbl_child_is_married": "Married?",
+  "msg_child_married_ineligible": "Married — Ineligible for orphan pension"
 }

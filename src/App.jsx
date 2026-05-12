@@ -352,7 +352,7 @@ function App() {
         const currentAge = computeDynamicAge(child.dob);
         const unemployedStatuses = ['Unemployed', 'School Student', 'College/Univ Student', 'Informal Job'];
 
-        let isEligibleNormal = currentAge !== '' && currentAge < 26 && unemployedStatuses.includes(child.occ);
+        let isEligibleNormal = currentAge !== '' && currentAge < 26 && unemployedStatuses.includes(child.occ) && !child.is_married;
 
         let isEligibleDisabled = false;
         let eligibilityText = "";
@@ -364,8 +364,9 @@ function App() {
             eligibilityText = "Eligible Orphan (Under 26 + Valid Main Medical Board Cert)";
           }
         } else if (child.is_disabled && child.dis_before_26 && child.health_307 && child.med_board && child.med_board_date) {
-          // Lifetime Activation logic
-          const spouseIsActive = data.applicantMarriages && data.applicantMarriages[data.app_contributor_marriage_index]?.s_alive !== false;
+          // Lifetime Activation logic — use last contributor marriage as primary spouse reference
+          const lastContributorMarriage = data.contributorMarriages[data.contributorMarriages.length - 1];
+          const spouseIsActive = lastContributorMarriage?.s_alive !== false && lastContributorMarriage?.s_term !== 'Demise of Spouse';
           const widowRemarried = data.a_remarried === true;
           const abandonedCare = data.orphan_care && data.orphan_care[childId] === false;
 
@@ -672,8 +673,8 @@ function App() {
                 <label className="cursor-pointer"><input type="radio" checked={data.serviceCategory === 'Volunteer Force'} onChange={() => updateData('serviceCategory', 'Volunteer Force')} /> {t('opt_volunteer_force')}</label>
               </div>
               <div className="mt-4">
-                {((data.serviceCategory === 'Regular Force' && data.doa && data.doa < '1968-09-30') || 
-                  (data.serviceCategory === 'Volunteer Force' && data.doa && data.doa < (data.gender === 'Male' ? '1981-09-01' : '1983-08-01'))) && (
+                {((data.serviceCategory === 'Regular Force' && data.doa && data.doa <= '1968-09-30') || 
+                  (data.serviceCategory === 'Volunteer Force' && data.doa && data.doa <= (data.gender === 'Male' ? '1981-09-01' : '1983-08-01'))) && (
                   <div className="form-row">
                     <label className="label text-amber font-bold">{t('lbl_military_consent_date')}</label>
                     <input type="date" className="form-input" value={data.militaryConsentDate} onChange={e => updateData('militaryConsentDate', e.target.value)} />
@@ -783,21 +784,21 @@ function App() {
             } else if (data.serviceSector === 'Forces') {
               if (!data.serviceCategory) { alert(t('err_global_format')); return; }
               if (data.serviceCategory === 'Regular Force') {
-                if (data.doa < '1968-09-30' && (!data.militaryConsentDate || data.militaryConsentDate > '2006-06-30')) {
+                if (data.doa <= '1968-09-30' && (!data.militaryConsentDate || data.militaryConsentDate > '2006-06-30')) {
                   if (!data.militaryConsentDate) alert(t('err_military_consent_missing'));
                   else handleRejection(t('err_military_consent_late_regular'));
                   return;
                 }
               } else if (data.serviceCategory === 'Volunteer Force') {
                 let cutoffDate = data.gender === 'Male' ? '1981-09-01' : '1983-08-01';
-                if (data.doa < cutoffDate && (!data.militaryConsentDate || data.militaryConsentDate > '2012-12-31')) {
+                if (data.doa <= cutoffDate && (!data.militaryConsentDate || data.militaryConsentDate > '2012-12-31')) {
                   if (!data.militaryConsentDate) alert(t('err_military_consent_missing'));
                   else handleRejection(t('err_military_consent_late_volunteer'));
                   return;
                 }
               }
             }
-            if (data.isPermanent === false && !(data.diedDueToTerrorism && !data.isPensioner)) {
+            if (data.isPermanent === false && !(data.diedDueToTerrorism && !data.isPensioner) && !(data.serviceSector === 'Forces' && data.isPensioner && data.retiredDueToTerrorism)) {
               handleRejection(t('err_not_permanent'));
               return;
             }
@@ -1291,6 +1292,15 @@ function App() {
                             <input type="text" placeholder="Disability (If Any)" className="form-input text-sm" value={child.dis} onChange={e => { let arr = [...m.children]; arr[j].dis = e.target.value; updateMar(i, 'children', arr); }} />
                             <input type="number" placeholder="Monthly Income" className="form-input text-sm" value={child.income} onChange={e => { let arr = [...m.children]; arr[j].income = e.target.value; updateMar(i, 'children', arr); }} />
                           </div>
+                          <div className="mt-2 flex items-center gap-3">
+                            <label className="flex gap-2 items-center text-sm font-bold cursor-pointer text-primary">
+                              <input type="checkbox" className="min-w-[16px] min-h-[16px]" checked={child.is_married || false} onChange={e => { let arr = [...m.children]; arr[j].is_married = e.target.checked; updateMar(i, 'children', arr); }} />
+                              {t('lbl_child_is_married')}
+                            </label>
+                            {child.is_married && (
+                              <span className="text-xs font-bold text-error px-2 py-0.5 bg-red-50 border border-error rounded animate-fade-in">{t('msg_child_married_ineligible')}</span>
+                            )}
+                          </div>
 
                           <div className="mt-3 p-3 bg-gray-50 border border-subtle rounded animate-fade-in shadow-sm">
                             <label className="flex gap-2 text-sm font-bold text-[#334155] cursor-pointer"><input type="checkbox" className="min-w-[16px]" checked={child.is_disabled || false} onChange={e => { let arr = [...m.children]; arr[j].is_disabled = e.target.checked; updateMar(i, 'children', arr); }} /> {t('lbl_child_disabled')}</label>
@@ -1737,11 +1747,14 @@ function App() {
         dgApprovalReasons.push(t('msg_dg_approval_missing_person'));
       }
 
+      // Use unified day-based DG check (avoids year-rounding errors with computeAgeAtDate)
       for (let i = 0; i < data.contributorMarriages.length; i++) {
         const m = data.contributorMarriages[i];
         if (m.date && data.dod && !data.isMissingPerson) {
-          const dur = computeAgeAtDate(m.date, data.dod);
-          if (dur === 0 && (!m.children || m.children.length === 0)) {
+          const mDate = new Date(m.date);
+          const dodDate = new Date(data.dod);
+          const diffDays = Math.ceil(Math.abs(dodDate - mDate) / (1000 * 60 * 60 * 24));
+          if (diffDays < 365 && (!m.children || m.children.length === 0)) {
             requiresDGApproval = true;
             dgApprovalReasons.push(t('msg_dg_approval_marriage_duration').replace('{index}', i + 1));
           }
@@ -1877,7 +1890,9 @@ function App() {
 
             {orphansList.filter(o => o.isEligibleDisabled).map(o => {
               const isDeferred = !spouseLostPrimary && o.marriageIndex === applicantMarriageIndex;
-              const hasMultipleOrphans = orphansList.some(other => !other.isEligibleDisabled && other.marriageIndex === o.marriageIndex);
+              // Temporary hold applies when disabled orphan has reached 26 AND other eligible orphans (any age <26) still exist
+              const disabledOrphanAge = computeDynamicAge(o.dob);
+              const hasMultipleOrphans = disabledOrphanAge >= 26 && orphansList.some(other => other.childId !== o.childId && computeDynamicAge(other.dob) < 26);
               return (
               <div key={o.childId} className="mb-6 p-4 border border-indigo-200 bg-indigo-50 rounded animate-fade-in shadow-sm">
                 <h3 className="text-indigo-800 font-bold flex items-center gap-2 mb-2"><Activity size={20} /> {t('lbl_disabled_pension_auth')} {o.name || t('lbl_unnamed_dependent')}</h3>
