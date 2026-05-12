@@ -345,41 +345,53 @@ function App() {
   // Extract Orphans globally
   const extractOrphans = () => {
     const orphans = [];
+    const totalMarriages = data.contributorMarriages.length;
     data.contributorMarriages.forEach((m, mIndex) => {
+      const isLastMarriage = mIndex === totalMarriages - 1;
       (m.children || []).forEach((child, cIndex) => {
         if (!child.dob) return;
         const childId = `${mIndex}_${cIndex}`;
         const currentAge = computeDynamicAge(child.dob);
         const unemployedStatuses = ['Unemployed', 'School Student', 'College/Univ Student', 'Informal Job'];
 
-        let isEligibleNormal = currentAge !== '' && currentAge < 26 && unemployedStatuses.includes(child.occ) && !child.is_married;
+        // Marriage does NOT affect regular orphan eligibility (statutory rule)
+        let isEligibleNormal = currentAge !== '' && currentAge < 26 && unemployedStatuses.includes(child.occ);
 
         let isEligibleDisabled = false;
-        let eligibilityText = "";
+        let isDeferred = false;
+        let eligibilityText = '';
 
         if (isEligibleNormal) {
-          eligibilityText = "Eligible Orphan (Under 26, Unemployed, Unmarried)";
+          eligibilityText = 'Eligible Orphan (Under 26, Unemployed)';
           if (child.is_disabled && child.dis_before_26 && child.health_307 && child.med_board && child.med_board_date) {
             isEligibleDisabled = true;
-            eligibilityText = "Eligible Orphan (Under 26 + Valid Main Medical Board Cert)";
+            eligibilityText = 'Eligible Orphan (Under 26 + Valid Main Medical Board Cert)';
           }
         } else if (child.is_disabled && child.dis_before_26 && child.health_307 && child.med_board && child.med_board_date) {
-          // Lifetime Activation logic — use last contributor marriage as primary spouse reference
-          const lastContributorMarriage = data.contributorMarriages[data.contributorMarriages.length - 1];
-          const spouseIsActive = lastContributorMarriage?.s_alive !== false && lastContributorMarriage?.s_term !== 'Demise of Spouse';
+          // Lifetime Activation / Deferral logic
+          // Deferral ONLY applies when the disabled child is from the LAST (current) marriage
+          // and that marriage's spouse is still alive and caring. A prior-marriage disabled
+          // orphan is NEVER deferred by a later marriage's spouse.
+          const lastContributorMarriage = data.contributorMarriages[totalMarriages - 1];
+          const spouseOfSameMarriage = isLastMarriage
+            ? (lastContributorMarriage?.s_alive !== false && lastContributorMarriage?.s_term !== 'Demise of Spouse')
+            : false; // prior-marriage children are never deferred by a different spouse
           const widowRemarried = data.a_remarried === true;
           const abandonedCare = data.orphan_care && data.orphan_care[childId] === false;
 
-          if (!spouseIsActive || widowRemarried || abandonedCare) {
-            isEligibleDisabled = true;
-            eligibilityText = "Lifetime Disabled Pension Activated (Valid Medical Board Cert + Priority Care Nullified)";
+          if (spouseOfSameMarriage && !widowRemarried && !abandonedCare) {
+            // Deferred — include in list so card shows, but NOT as an active pensioner
+            isDeferred = true;
+            eligibilityText = 'Disabled Pension Deferred (Active primary spouse maintains care capability)';
           } else {
-            eligibilityText = "Disabled Pension Deferred (Active primary spouse maintains care capability)";
+            isEligibleDisabled = true;
+            eligibilityText = 'Lifetime Disabled Pension Activated (Valid Medical Board Cert + Priority Care Nullified)';
           }
         }
 
-        if (isEligibleNormal || isEligibleDisabled) {
-          orphans.push({ ...child, marriageIndex: mIndex + 1, isEligibleDisabled, eligibilityText, childId });
+        // Include in list if: normal eligible, OR disabled active, OR disabled deferred (for UI card)
+        if (isEligibleNormal || isEligibleDisabled || isDeferred) {
+          orphans.push({ ...child, marriageIndex: mIndex + 1, isEligibleDisabled, isDeferred, eligibilityText, childId });
         }
       });
     });
@@ -852,7 +864,10 @@ function App() {
               {!data.pensionNotCommenced && (
                 <div className="animate-fade-in">
                   <label className="label">{t('lbl_last_pension_date')}</label>
-                  <input type="date" min="1900-01-01" className="form-input border-primary" value={data.lastPensionPaymentDate} onChange={e => updateData('lastPensionPaymentDate', e.target.value)} />
+                  <input type="date" min={data.dor || '1900-01-01'} className={`form-input border-primary ${data.lastPensionPaymentDate && data.dor && data.lastPensionPaymentDate < data.dor ? 'border-[2px] border-error text-error' : ''}`} value={data.lastPensionPaymentDate} onChange={e => updateData('lastPensionPaymentDate', e.target.value)} />
+                  {data.lastPensionPaymentDate && data.dor && data.lastPensionPaymentDate < data.dor && (
+                    <div className="text-error text-xs font-bold mt-1">{t('err_last_pension_before_retirement')}</div>
+                  )}
                   {overpaidMonths > 0 && (
                     <div className="mt-2 text-sm font-bold text-error">
                       An overpayment for {overpaidMonths} month{overpaidMonths > 1 ? 's' : ''}
@@ -1297,8 +1312,8 @@ function App() {
                               <input type="checkbox" className="min-w-[16px] min-h-[16px]" checked={child.is_married || false} onChange={e => { let arr = [...m.children]; arr[j].is_married = e.target.checked; updateMar(i, 'children', arr); }} />
                               {t('lbl_child_is_married')}
                             </label>
-                            {child.is_married && (
-                              <span className="text-xs font-bold text-error px-2 py-0.5 bg-red-50 border border-error rounded animate-fade-in">{t('msg_child_married_ineligible')}</span>
+                            {child.is_married && child.is_disabled && (
+                              <span className="text-xs font-bold text-amber px-2 py-0.5 bg-amber-light border border-amber rounded animate-fade-in">{t('msg_child_married_disabled_review')}</span>
                             )}
                           </div>
 
@@ -1683,12 +1698,14 @@ function App() {
       // --- STATUTORY CONDITION FLAGS ---
       const activeSpouseDemised = applicantSpouseRecord?.s_alive === false || applicantSpouseRecord?.s_term === 'Ended: Demise of Spouse';
       const activeSpouseRemarried = data.a_remarried === true || applicantSpouseRecord?.s_remarried === true;
-      const biologicalOrphans = orphansList.filter(o => o.marriageIndex === applicantMarriageIndex);
+      // Exclude deferred orphans from pension distribution counts — they are not active pensioners
+      const activeOrphansList = orphansList.filter(o => !o.isDeferred);
+      const biologicalOrphans = activeOrphansList.filter(o => o.marriageIndex === applicantMarriageIndex);
       const abandonedBiologicalOrphans = biologicalOrphans.some(o => data.orphan_care && data.orphan_care[o.childId] === false);
 
-      const priorOrphans = orphansList.filter(o => o.marriageIndex !== applicantMarriageIndex);
+      const priorOrphans = activeOrphansList.filter(o => o.marriageIndex !== applicantMarriageIndex);
       const hasPriorOrphans = priorOrphans.length > 0;
-      const hasAnyOrphans = orphansList.length > 0;
+      const hasAnyOrphans = activeOrphansList.length > 0;
 
       // --- STATUTORY DISTRIBUTION MATRIX ---
       // The spouse loses primary beneficiary status when deceased, remarried, or abandoned orphans
@@ -1696,8 +1713,8 @@ function App() {
 
       // Which orphans appear in the beneficiary report?
       // When spouse is active (alive + not remarried + not abandoned): ONLY prior marriage orphans appear
-      // When spouse loses primary: ALL orphans from ALL marriages appear
-      const ActiveOrphansToDisplay = spouseLostPrimary ? orphansList : priorOrphans;
+      // When spouse loses primary: ALL active orphans from ALL marriages appear
+      const ActiveOrphansToDisplay = spouseLostPrimary ? activeOrphansList : priorOrphans;
 
       // SCENARIO A: Spouse deceased, no orphans → 0% (no beneficiary)
       // SCENARIO B: Spouse deceased, orphans exist → 100% to orphans, no reversion
@@ -1761,6 +1778,13 @@ function App() {
         }
       }
 
+      // Add DG approval reason if a disabled orphan is married (livelihood capacity concern)
+      orphansList.filter(o => o.isEligibleDisabled && o.is_married).forEach(o => {
+        requiresDGApproval = true;
+        dgApprovalReasons.push(`Disabled Orphan ${o.name || o.childId}: Married — Livelihood capacity must be independently assessed by the Director General.`);
+      });
+
+      // Orphan with independent financial assets
       Object.keys(data.orphan_finances || {}).forEach(k => {
         if (data.orphan_finances[k]?.hasAssets) {
           requiresDGApproval = true;
@@ -1888,11 +1912,12 @@ function App() {
               </div>
             </div>
 
-            {orphansList.filter(o => o.isEligibleDisabled).map(o => {
-              const isDeferred = !spouseLostPrimary && o.marriageIndex === applicantMarriageIndex;
-              // Temporary hold applies when disabled orphan has reached 26 AND other eligible orphans (any age <26) still exist
+            {/* Disabled orphan cards — active AND deferred */}
+            {orphansList.filter(o => o.isEligibleDisabled || o.isDeferred).map(o => {
+              const isDeferred = o.isDeferred;
+              // Temporary hold: disabled orphan age >=26, other active orphans still under 26
               const disabledOrphanAge = computeDynamicAge(o.dob);
-              const hasMultipleOrphans = disabledOrphanAge >= 26 && orphansList.some(other => other.childId !== o.childId && computeDynamicAge(other.dob) < 26);
+              const hasMultipleOrphans = !isDeferred && disabledOrphanAge >= 26 && activeOrphansList.some(other => other.childId !== o.childId && computeDynamicAge(other.dob) < 26);
               return (
               <div key={o.childId} className="mb-6 p-4 border border-indigo-200 bg-indigo-50 rounded animate-fade-in shadow-sm">
                 <h3 className="text-indigo-800 font-bold flex items-center gap-2 mb-2"><Activity size={20} /> {t('lbl_disabled_pension_auth')} {o.name || t('lbl_unnamed_dependent')}</h3>

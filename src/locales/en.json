@@ -399,5 +399,7 @@
   "msg_unregistered_dg_note": "⚠ Note: Unregistered marriages require Director General (DG) approval before W&OP benefits can be formally granted.",
   "lbl_cert_number_optional": "Certificate / Registration No. (if any)",
   "lbl_child_is_married": "Married?",
-  "msg_child_married_ineligible": "Married — Ineligible for orphan pension"
+  "msg_child_married_ineligible": "Married — Ineligible for orphan pension",
+  "msg_child_married_disabled_review": "Married — DG Livelihood Review Required",
+  "err_last_pension_before_retirement": "Last pension payment date cannot be before the retirement date."
 }

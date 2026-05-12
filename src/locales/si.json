@@ -400,5 +400,7 @@
   "msg_unregistered_dg_note": "⚠ සටහන: ලියාපදිංචි නොවූ විවාහ සඳහා W&OP ප්‍රතිලාභ ලබා දීමට පෙර අධ්‍යක්ෂ ජනරාල් (DG) අනුමැතිය අවශ්‍ය වේ.",
   "lbl_cert_number_optional": "සහතිකය / ලියාපදිංචි අංකය (ඇත්නම්)",
   "lbl_child_is_married": "විවාහ වී ඇත්ද?",
-  "msg_child_married_ineligible": "විවාහ වී ඇත — අනත්දරු විශ්‍රාම වැටුපට සුදුසු නොවේ"
+  "msg_child_married_ineligible": "විවාහ වී ඇත — අනත්දරු විශ්‍රාම වැටුපට සුදුසු නොවේ",
+  "msg_child_married_disabled_review": "විවාහ වී ඇත — DG ජීවිකා සමාලෝචනය අවශ්‍ය වේ",
+  "err_last_pension_before_retirement": "අවසාන විශ්‍රාම වැටුප් ගෙවූ දිනය විශ්‍රාම දිනයට පෙර විය නොහැක."
 }
