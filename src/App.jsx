@@ -554,13 +554,14 @@ function App() {
   const Part1A = () => {
     const handleNext = () => {
       let errs = {};
-      if (!data.name) errs.p1name = "Required";
-      if (!data.nic) errs.p1nic = "Required";
-      if (!data.dob) errs.p1dob = "Required";
-      if (!data.isMissingPerson && !data.dod) errs.p1dod = "Required";
+      if (!data.name) errs.p1name = 'Required';
+      if (!data.nic) errs.p1nic = 'Required';
+      if (!data.dob) errs.p1dob = 'Required';
+      if (!data.isMissingPerson && !data.dod) errs.p1dod = 'Required';
       if (!data.isMissingPerson && data.dod && !data.deathCertNo) errs.p1deathCert = t('err_death_cert_required');
-      if (data.isMissingPerson && !data.policeComplaintDate) errs.p1police = "Required";
+      if (data.isMissingPerson && !data.policeComplaintDate) errs.p1police = 'Required';
       if (data.serviceSector === 'Forces' && !data.officerNumber) errs.p1officerNo = t('err_officer_number_required');
+      if (data.isPensioner && !data.dor) errs.p1dor = t('err_dor_required');
 
       if (Object.keys(errs).length > 0) {
         setFormErrors({ ...errs, global: t('err_global_format') });
@@ -624,7 +625,8 @@ function App() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div className="form-row"><label className="label">{t('lbl_dob')}</label><input type="date" min="1900-01-01" className={`form-input ${formErrors.p1dob ? 'border-[2px] border-error text-error' : ''}`} value={data.dob} onChange={e => { updateData('dob', e.target.value); setFormErrors(p => ({ ...p, p1dob: null })); }} />
-            {data.dob && <span className="inline-block mt-1 px-2 py-0.5 bg-primary text-white text-xs font-bold rounded">{t('lbl_age')}: {computeDynamicAge(data.dob)}</span>}
+            {formErrors.p1dob && <div className="text-error text-xs font-bold mt-1">{formErrors.p1dob}</div>}
+            {data.dob && !formErrors.p1dob && <span className="inline-block mt-1 px-2 py-0.5 bg-primary text-white text-xs font-bold rounded">{t('lbl_age')}: {computeDynamicAge(data.dob)}</span>}
           </div>
           <div className="form-row">
             <label className="label">{t('lbl_nic')}</label>
@@ -647,7 +649,11 @@ function App() {
             )}
           </div>
           {data.isPensioner && (
-            <div className="form-row animate-fade-in"><label className="label">{t('lbl_dor')}</label><input type="date" min="1900-01-01" className="form-input" value={data.dor} onChange={e => updateData('dor', e.target.value)} /></div>
+            <div className="form-row animate-fade-in">
+              <label className="label">{t('lbl_dor')}</label>
+              <input type="date" min="1900-01-01" className={`form-input ${formErrors.p1dor ? 'border-[2px] border-error text-error' : ''}`} value={data.dor} onChange={e => { updateData('dor', e.target.value); setFormErrors(p => ({ ...p, p1dor: null })); }} />
+              {formErrors.p1dor && <div className="text-error text-xs font-bold mt-1">{formErrors.p1dor}</div>}
+            </div>
           )}
           {!data.isMissingPerson && data.dod && (
             <div className="form-row animate-fade-in">
@@ -679,17 +685,17 @@ function App() {
           </div>
           {data.serviceSector === 'Forces' && (
             <div>
-              <label className="label mb-2 text-primary">{t('lbl_service_category')}</label>
-              <div className="flex gap-4">
-                <label className="cursor-pointer"><input type="radio" checked={data.serviceCategory === 'Regular Force'} onChange={() => updateData('serviceCategory', 'Regular Force')} /> {t('opt_regular_force')}</label>
-                <label className="cursor-pointer"><input type="radio" checked={data.serviceCategory === 'Volunteer Force'} onChange={() => updateData('serviceCategory', 'Volunteer Force')} /> {t('opt_volunteer_force')}</label>
+              <label className={`label mb-2 ${formErrors.svcCategory ? 'text-error font-bold' : 'text-primary'}`}>{t('lbl_service_category')} {formErrors.svcCategory && <span className="text-xs">— {formErrors.svcCategory}</span>}</label>
+              <div className={`flex gap-4 p-2 rounded ${formErrors.svcCategory ? 'border-[2px] border-error bg-red-50' : ''}`}>
+                <label className="cursor-pointer"><input type="radio" checked={data.serviceCategory === 'Regular Force'} onChange={() => { updateData('serviceCategory', 'Regular Force'); setFormErrors(p => ({ ...p, svcCategory: null })); }} /> {t('opt_regular_force')}</label>
+                <label className="cursor-pointer"><input type="radio" checked={data.serviceCategory === 'Volunteer Force'} onChange={() => { updateData('serviceCategory', 'Volunteer Force'); setFormErrors(p => ({ ...p, svcCategory: null })); }} /> {t('opt_volunteer_force')}</label>
               </div>
               <div className="mt-4">
                 {((data.serviceCategory === 'Regular Force' && data.doa && data.doa <= '1968-09-30') || 
                   (data.serviceCategory === 'Volunteer Force' && data.doa && data.doa <= (data.gender === 'Male' ? '1981-09-01' : '1983-08-01'))) && (
                   <div className="form-row">
-                    <label className="label text-amber font-bold">{t('lbl_military_consent_date')}</label>
-                    <input type="date" className="form-input" value={data.militaryConsentDate} onChange={e => updateData('militaryConsentDate', e.target.value)} />
+                    <label className={`label font-bold ${formErrors.militaryConsentDate ? 'text-error' : 'text-amber'}`}>{t('lbl_military_consent_date')} {formErrors.militaryConsentDate && <span className="text-xs">— {formErrors.militaryConsentDate}</span>}</label>
+                    <input type="date" className={`form-input ${formErrors.militaryConsentDate ? 'border-[2px] border-error text-error' : ''}`} value={data.militaryConsentDate} onChange={e => { updateData('militaryConsentDate', e.target.value); setFormErrors(p => ({ ...p, militaryConsentDate: null })); }} />
                   </div>
                 )}
               </div>
@@ -700,7 +706,7 @@ function App() {
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="form-row">
             <label className="label">{t('lbl_doa')}</label>
-            <input type="date" min="1900-01-01" className={`form-input ${formErrors.doa ? 'border-error text-error' : ''}`} value={data.doa} onChange={e => { updateData('doa', e.target.value); setFormErrors(prev => ({ ...prev, doa: null })); }} />
+            <input type="date" min="1900-01-01" className={`form-input ${formErrors.doa ? 'border-[2px] border-error text-error' : ''}`} value={data.doa} onChange={e => { updateData('doa', e.target.value); setFormErrors(prev => ({ ...prev, doa: null, svcCategory: null, militaryConsentDate: null })); }} />
             {formErrors.doa && <div className="text-error text-xs font-bold mt-1">{formErrors.doa}</div>}
           </div>
           <div className="form-row"><label className="label">{t('lbl_is_45')}</label><input type="text" className="form-input font-bold text-primary bg-surface-alt" disabled value={is45 ? t('msg_yes') : t('msg_no')} /></div>
@@ -763,10 +769,11 @@ function App() {
             {data.doa && data.doa < '1983-08-01' && (
               <div className="space-y-4">
                 <div className="form-row">
-                  <label className="label">{t('lbl_consent_wop')}</label>
-                  <select className="form-input" value={data.femaleConsent} onChange={e => {
+                  <label className={`label ${formErrors.femaleConsent ? 'text-error font-bold' : ''}`}>{t('lbl_consent_wop')} {formErrors.femaleConsent && <span className="text-xs">— {formErrors.femaleConsent}</span>}</label>
+                  <select className={`form-input ${formErrors.femaleConsent ? 'border-[2px] border-error text-error' : ''}`} value={data.femaleConsent} onChange={e => {
                     if (e.target.value === 'No + Reluctant') handleRejection(t('err_female_reluctant'));
                     updateData('femaleConsent', e.target.value);
+                    setFormErrors(p => ({ ...p, femaleConsent: null }));
                   }}>
                     <option value="">{t('opt_select')}</option>
                     <option value="Yes">{t('opt_yes')}</option>
@@ -783,39 +790,36 @@ function App() {
         <div className="button-group">
           <button className="btn btn-secondary" onClick={() => setCheckerStep(0)}><ChevronLeft size={20} /> {t('btn_back')}</button>
           <button className="btn" onClick={() => {
+            const errsA = {};
+            if (!data.doa) errsA.doa = t('err_doa_required');
+            if (data.serviceSector === 'Forces' && !data.serviceCategory) errsA.svcCategory = t('err_service_category_required');
+            if (data.serviceSector === 'Forces' && !data.officerNumber) errsA.p1officerNo = t('err_officer_number_required');
+            if (data.gender === 'Female' && data.serviceSector === 'Civil' && data.doa && data.doa < '1983-08-01' && (!data.femaleConsent || data.femaleConsent === '')) {
+              errsA.femaleConsent = t('err_fill_female_consent');
+            }
+            // Military consent date validation
+            if (data.serviceSector === 'Forces' && data.serviceCategory === 'Regular Force' && data.doa <= '1968-09-30') {
+              if (!data.militaryConsentDate) errsA.militaryConsentDate = t('err_military_consent_missing');
+              else if (data.militaryConsentDate > '2006-06-30') { setFormErrors(errsA); handleRejection(t('err_military_consent_late_regular')); return; }
+            }
+            if (data.serviceSector === 'Forces' && data.serviceCategory === 'Volunteer Force') {
+              const cutoff = data.gender === 'Male' ? '1981-09-01' : '1983-08-01';
+              if (data.doa <= cutoff) {
+                if (!data.militaryConsentDate) errsA.militaryConsentDate = t('err_military_consent_missing');
+                else if (data.militaryConsentDate > '2012-12-31') { setFormErrors(errsA); handleRejection(t('err_military_consent_late_volunteer')); return; }
+              }
+            }
+            if (Object.keys(errsA).length > 0) { setFormErrors(prev => ({ ...prev, ...errsA, global: t('err_global_format') })); return; }
             if (data.dob && data.doa) {
               const ageAtAppt = computeAgeAtDate(data.dob, data.doa);
-              if (ageAtAppt < 18) {
-                handleRejection(t('err_under_18'));
-                return;
-              }
+              if (ageAtAppt < 18) { handleRejection(t('err_under_18')); return; }
             }
             if (is45 && !data.cabinetDate) { handleRejection(t('err_no_cabinet_approval')); return; }
-            if (data.serviceSector === 'Civil') {
-              if (data.gender === 'Female' && data.doa < '1983-08-01' && (!data.femaleConsent || data.femaleConsent === '')) { alert(t('err_fill_female_consent')); return; }
-            } else if (data.serviceSector === 'Forces') {
-              if (!data.serviceCategory) { alert(t('err_global_format')); return; }
-              if (data.serviceCategory === 'Regular Force') {
-                if (data.doa <= '1968-09-30' && (!data.militaryConsentDate || data.militaryConsentDate > '2006-06-30')) {
-                  if (!data.militaryConsentDate) alert(t('err_military_consent_missing'));
-                  else handleRejection(t('err_military_consent_late_regular'));
-                  return;
-                }
-              } else if (data.serviceCategory === 'Volunteer Force') {
-                let cutoffDate = data.gender === 'Male' ? '1981-09-01' : '1983-08-01';
-                if (data.doa <= cutoffDate && (!data.militaryConsentDate || data.militaryConsentDate > '2012-12-31')) {
-                  if (!data.militaryConsentDate) alert(t('err_military_consent_missing'));
-                  else handleRejection(t('err_military_consent_late_volunteer'));
-                  return;
-                }
-              }
-            }
             if (data.isPermanent === false && !(data.diedDueToTerrorism && !data.isPensioner) && !(data.serviceSector === 'Forces' && data.isPensioner && data.retiredDueToTerrorism)) {
-              handleRejection(t('err_not_permanent'));
-              return;
+              handleRejection(t('err_not_permanent')); return;
             }
-            setFormErrors({ ...formErrors, doa: null });
-            setCheckerStep(2)
+            setFormErrors({});
+            setCheckerStep(2);
           }}>{t('btn_next_section_b')} <ChevronRight size={20} /></button>
         </div>
       </div>
