@@ -405,5 +405,6 @@
   "err_last_pension_before_retirement": "අවසාන විශ්‍රාම වැටුප් ගෙවූ දිනය විශ්‍රාම දිනයට පෙර විය නොහැක.",
   "err_dor_required": "විශ්‍රාම ගිය දිනය අවශ්‍ය වේ.",
   "err_doa_required": "පත්වීමේ දිනය අවශ්‍ය වේ.",
-  "err_service_category_required": "රෙගුලර් හෝ ස්වේච්ඡා බලකාය තෝරන්න."
+  "err_service_category_required": "රෙගුලර් හෝ ස්වේච්ඡා බලකාය තෝරන්න.",
+  "err_last_pension_required": "අවසාන විශ්‍රාම වැටුප් ගෙවූ දිනය අවශ්‍ය වේ."
 }

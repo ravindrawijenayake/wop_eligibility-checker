@@ -404,5 +404,6 @@
   "err_last_pension_before_retirement": "Last pension payment date cannot be before the retirement date.",
   "err_dor_required": "Retirement date is required for a pensioner.",
   "err_doa_required": "Date of appointment is required.",
-  "err_service_category_required": "Please select Regular Force or Volunteer Force."
+  "err_service_category_required": "Please select Regular Force or Volunteer Force.",
+  "err_last_pension_required": "Last pension payment date is required."
 }

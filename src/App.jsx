@@ -829,6 +829,7 @@ function App() {
   const SectionB_C = () => (
     <div className="animate-fade-in">
       <div className="tag">{t('section_b_c_title')}</div>
+      {formErrors.global && <div className="p-3 bg-red-100 text-error border-[2px] border-error mb-4 font-bold rounded animate-fade-in">{formErrors.global}</div>}
       <h2 className="text-2xl font-bold mb-4">{t('lbl_reg_term')}</h2>
 
       <div className="p-4 bg-surface-alt border border-subtle rounded mb-6">
@@ -868,8 +869,11 @@ function App() {
               {!data.pensionNotCommenced && (
                 <div className="animate-fade-in">
                   <label className="label">{t('lbl_last_pension_date')}</label>
-                  <input type="date" min={data.dor || '1900-01-01'} className={`form-input border-primary ${data.lastPensionPaymentDate && data.dor && data.lastPensionPaymentDate < data.dor ? 'border-[2px] border-error text-error' : ''}`} value={data.lastPensionPaymentDate} onChange={e => updateData('lastPensionPaymentDate', e.target.value)} />
-                  {data.lastPensionPaymentDate && data.dor && data.lastPensionPaymentDate < data.dor && (
+                  <input type="date" min={data.dor || '1900-01-01'} className={`form-input ${formErrors.lastPensionDate ? 'border-[2px] border-error text-error' : (data.lastPensionPaymentDate && data.dor && data.lastPensionPaymentDate < data.dor ? 'border-[2px] border-error text-error' : 'border-primary')}`} value={data.lastPensionPaymentDate} onChange={e => updateData('lastPensionPaymentDate', e.target.value)} />
+                  {(formErrors.lastPensionDate) && (
+                    <div className="text-error text-xs font-bold mt-1">{formErrors.lastPensionDate}</div>
+                  )}
+                  {data.lastPensionPaymentDate && data.dor && data.lastPensionPaymentDate < data.dor && !formErrors.lastPensionDate && (
                     <div className="text-error text-xs font-bold mt-1">{t('err_last_pension_before_retirement')}</div>
                   )}
                   {overpaidMonths > 0 && (
@@ -945,6 +949,11 @@ function App() {
       <div className="button-group">
         <button className="btn btn-secondary" onClick={() => setCheckerStep(1)}><ChevronLeft size={20} /> {t('btn_back')}</button>
         <button className="btn" onClick={() => {
+          const errsBC = {};
+          if (data.isPensioner && !data.dor) errsBC.p1dor = t('err_dor_required');
+          if (data.isPensioner && !data.pensionNotCommenced && !data.lastPensionPaymentDate) errsBC.lastPensionDate = t('err_last_pension_required');
+          if (data.isPensioner && !data.pensionNotCommenced && data.lastPensionPaymentDate && data.dor && data.lastPensionPaymentDate < data.dor) errsBC.lastPensionDate = t('err_last_pension_before_retirement');
+          if (Object.keys(errsBC).length > 0) { setFormErrors(prev => ({ ...prev, ...errsBC, global: t('err_global_format') })); return; }
           if (!data.isPensioner && data.endedWithLossOfPension && data.lossOfPensionReason === 'Other') {
             if (data.doa >= '1981-07-02') {
               if (data.reckonableYears < 10) {
@@ -1057,7 +1066,7 @@ function App() {
                 </div>
                 <div className="form-row m-0">
                   <label className="label">{t('lbl_marriage_date')}</label>
-                  <input type="date" min="1900-01-01" className={`form-input ${formErrors[`${arrKey}_${i}_date`] ? 'border-error text-error' : ''}`} value={m.date || ''} onChange={e => { updateMar(i, 'date', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_date`]: null })) }} />
+                  <input type="date" min="1900-01-01" className={`form-input ${formErrors[`${arrKey}_${i}_date`] ? 'border-[2px] border-error text-error' : ''}`} value={m.date || ''} onChange={e => { updateMar(i, 'date', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_date`]: null })) }} />
                   {formErrors[`${arrKey}_${i}_date`] && <div className="text-error text-xs font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_date`]}</div>}
                 </div>
                 {/* Registration toggle */}
@@ -1071,7 +1080,7 @@ function App() {
                 {!m.isUnregistered ? (
                   <div className="form-row m-0">
                     <label className="label">{t('lbl_cert_number')}</label>
-                    <input type="text" className={`form-input ${formErrors[`${arrKey}_${i}_cert`] ? 'border-error text-error' : ''}`} value={m.cert || ''} onChange={e => { updateMar(i, 'cert', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_cert`]: null })) }} />
+                    <input type="text" className={`form-input ${formErrors[`${arrKey}_${i}_cert`] ? 'border-[2px] border-error text-error' : ''}`} value={m.cert || ''} onChange={e => { updateMar(i, 'cert', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_cert`]: null })) }} />
                     {formErrors[`${arrKey}_${i}_cert`] && <div className="text-error text-[10px] font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_cert`]}</div>}
                   </div>
                 ) : (
@@ -1129,10 +1138,10 @@ function App() {
                 <div className="form-row"><label className="label text-muted text-xs">{t('lbl_spouse_name')}</label><input type="text" placeholder={t('lbl_spouse_name')} className="form-input" value={m.s_name || ''} onChange={e => updateMar(i, 's_name', e.target.value)} /></div>
                 <div className="form-row">
                   <label className="label text-muted text-xs">{t('lbl_spouse_nic')}</label>
-                  <input type="text" placeholder={t('lbl_spouse_nic')} className={`form-input ${formErrors[`${arrKey}_${i}_s_nic`] ? 'border-error text-error' : ''}`} value={m.s_nic || ''} onChange={e => { updateMar(i, 's_nic', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_nic`]: null })) }} />
+                  <input type="text" placeholder={t('lbl_spouse_nic')} className={`form-input ${formErrors[`${arrKey}_${i}_s_nic`] ? 'border-[2px] border-error text-error' : ''}`} value={m.s_nic || ''} onChange={e => { updateMar(i, 's_nic', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_nic`]: null })) }} />
                   {formErrors[`${arrKey}_${i}_s_nic`] && <div className="text-error text-xs font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_s_nic`]}</div>}
                 </div>
-                <div className="form-row"><label className="label text-muted text-xs">{t('lbl_spouse_dob')}</label><input type="date" min="1900-01-01" className={`form-input ${formErrors[`${arrKey}_${i}_s_dob`] ? 'border-error text-error' : ''}`} title={t('lbl_spouse_dob')} value={m.s_dob || ''} onChange={e => { updateMar(i, 's_dob', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_dob`]: null })); }} />
+                <div className="form-row"><label className="label text-muted text-xs">{t('lbl_spouse_dob')}</label><input type="date" min="1900-01-01" className={`form-input ${formErrors[`${arrKey}_${i}_s_dob`] ? 'border-[2px] border-error text-error' : ''}`} title={t('lbl_spouse_dob')} value={m.s_dob || ''} onChange={e => { updateMar(i, 's_dob', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_dob`]: null })); }} />
                   {m.s_dob && <span className="inline-block mt-1 px-2 py-0.5 bg-primary text-white text-xs font-bold rounded">{t('lbl_age')}: {computeDynamicAge(m.s_dob)}</span>}
                 </div>
               </div>
@@ -1176,12 +1185,12 @@ function App() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 p-3 bg-amber-50 border border-amber rounded animate-fade-in">
                     <div className="form-row m-0">
                       <label className="label text-[#b45309]">{t('lbl_decree_nisi')}</label>
-                      <input type="date" min="1900-01-01" className={`form-input text-sm ${formErrors[`${arrKey}_${i}_s_nisi_date`] ? 'border-error text-error' : ''}`} value={m.s_nisi_date || ''} onChange={e => { updateMar(i, 's_nisi_date', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_nisi_date`]: null })) }} />
+                      <input type="date" min="1900-01-01" className={`form-input text-sm ${formErrors[`${arrKey}_${i}_s_nisi_date`] ? 'border-[2px] border-error text-error' : ''}`} value={m.s_nisi_date || ''} onChange={e => { updateMar(i, 's_nisi_date', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_nisi_date`]: null })) }} />
                       {formErrors[`${arrKey}_${i}_s_nisi_date`] && <div className="text-error text-xs font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_s_nisi_date`]}</div>}
                     </div>
                     <div className="form-row m-0">
                       <label className="label text-[#b45309]">{t('lbl_decree_absolute')}</label>
-                      <input type="date" min="1900-01-01" className={`form-input text-sm ${formErrors[`${arrKey}_${i}_s_div_date`] ? 'border-error text-error' : ''}`} value={m.s_div_date || ''} onChange={e => { updateMar(i, 's_div_date', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_div_date`]: null })) }} />
+                      <input type="date" min="1900-01-01" className={`form-input text-sm ${formErrors[`${arrKey}_${i}_s_div_date`] ? 'border-[2px] border-error text-error' : ''}`} value={m.s_div_date || ''} onChange={e => { updateMar(i, 's_div_date', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_div_date`]: null })) }} />
                       {formErrors[`${arrKey}_${i}_s_div_date`] && <div className="text-error text-xs font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_s_div_date`]}</div>}
                     </div>
                   </div>
@@ -1191,7 +1200,7 @@ function App() {
                   <div className="mt-2 p-3 bg-indigo-50 border border-indigo-200 rounded animate-fade-in">
                     <div className="form-row mb-2">
                       <label className="label text-indigo-900">{t('lbl_sep_date')}</label>
-                      <input type="date" min="1900-01-01" className={`form-input text-sm max-w-sm ${formErrors[`${arrKey}_${i}_s_sep_date`] ? 'border-error text-error' : ''}`} value={m.s_sep_date || ''} onChange={e => { updateMar(i, 's_sep_date', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_sep_date`]: null })) }} />
+                      <input type="date" min="1900-01-01" className={`form-input text-sm max-w-sm ${formErrors[`${arrKey}_${i}_s_sep_date`] ? 'border-[2px] border-error text-error' : ''}`} value={m.s_sep_date || ''} onChange={e => { updateMar(i, 's_sep_date', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_sep_date`]: null })) }} />
                       {formErrors[`${arrKey}_${i}_s_sep_date`] && <div className="text-error text-xs font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_s_sep_date`]}</div>}
                     </div>
                     <p className="text-xs font-bold text-indigo-700">{t('msg_sep_warning')}</p>
@@ -1202,17 +1211,17 @@ function App() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2 p-3 bg-red-50 border border-red-200 rounded animate-fade-in">
                     <div className="form-row m-0">
                       <label className="label text-red-900 leading-tight">{t('lbl_court_order_date')}</label>
-                      <input type="date" min="1900-01-01" className={`form-input text-sm ${formErrors[`${arrKey}_${i}_s_void_date`] ? 'border-error text-error' : ''}`} value={m.s_void_date || ''} onChange={e => { updateMar(i, 's_void_date', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_void_date`]: null })) }} />
+                      <input type="date" min="1900-01-01" className={`form-input text-sm ${formErrors[`${arrKey}_${i}_s_void_date`] ? 'border-[2px] border-error text-error' : ''}`} value={m.s_void_date || ''} onChange={e => { updateMar(i, 's_void_date', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_void_date`]: null })) }} />
                       {formErrors[`${arrKey}_${i}_s_void_date`] && <div className="text-error text-xs font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_s_void_date`]}</div>}
                     </div>
                     <div className="form-row m-0">
                       <label className="label text-red-900 leading-tight">{t('lbl_court_name')}</label>
-                      <input type="text" placeholder="e.g. District Court" className={`form-input text-sm ${formErrors[`${arrKey}_${i}_s_void_court`] ? 'border-error text-error' : ''}`} value={m.s_void_court || ''} onChange={e => { updateMar(i, 's_void_court', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_void_court`]: null })) }} />
+                      <input type="text" placeholder="e.g. District Court" className={`form-input text-sm ${formErrors[`${arrKey}_${i}_s_void_court`] ? 'border-[2px] border-error text-error' : ''}`} value={m.s_void_court || ''} onChange={e => { updateMar(i, 's_void_court', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_void_court`]: null })) }} />
                       {formErrors[`${arrKey}_${i}_s_void_court`] && <div className="text-error text-[10px] font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_s_void_court`]}</div>}
                     </div>
                     <div className="form-row m-0">
                       <label className="label text-red-900 leading-tight">{t('lbl_case_number')}</label>
-                      <input type="text" placeholder="Case Ref No." className={`form-input text-sm ${formErrors[`${arrKey}_${i}_s_void_case`] ? 'border-error text-error' : ''}`} value={m.s_void_case || ''} onChange={e => { updateMar(i, 's_void_case', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_void_case`]: null })) }} />
+                      <input type="text" placeholder="Case Ref No." className={`form-input text-sm ${formErrors[`${arrKey}_${i}_s_void_case`] ? 'border-[2px] border-error text-error' : ''}`} value={m.s_void_case || ''} onChange={e => { updateMar(i, 's_void_case', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_void_case`]: null })) }} />
                       {formErrors[`${arrKey}_${i}_s_void_case`] && <div className="text-error text-[10px] font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_s_void_case`]}</div>}
                     </div>
                   </div>
@@ -1237,7 +1246,7 @@ function App() {
                   {m.s_remarried && (
                     <div className="mt-2 form-row max-w-sm">
                       <label className="label">{t('lbl_remarriage_date')}</label>
-                      <input type="date" min="1900-01-01" className={`form-input border-amber max-w-sm ${formErrors[`${arrKey}_${i}_s_rem_date`] ? 'border-error text-error' : ''}`} value={m.s_remarriage_date || ''} onChange={e => { updateMar(i, 's_remarriage_date', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_rem_date`]: null })); }} />
+                      <input type="date" min="1900-01-01" className={`form-input max-w-sm ${formErrors[`${arrKey}_${i}_s_rem_date`] ? 'border-[2px] border-error text-error' : 'border-amber'}`} value={m.s_remarriage_date || ''} onChange={e => { updateMar(i, 's_remarriage_date', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_rem_date`]: null })); }} />
                       {formErrors[`${arrKey}_${i}_s_rem_date`] && <div className="text-error text-xs font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_s_rem_date`]}</div>}
 
                       {m.s_remarriage_date && m.s_remarriage_date < '2010-08-17' && (
@@ -1289,11 +1298,15 @@ function App() {
                           <h5 className="font-bold mb-2">{t('lbl_child_details').replace('{n}', j + 1)}</h5>
                           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-2">
                             <input type="text" placeholder="Full Name" className="form-input text-sm" value={child.name} onChange={e => { let arr = [...m.children]; arr[j].name = e.target.value; updateMar(i, 'children', arr); }} />
-                            <select className={`form-input text-sm ${formErrors[`${arrKey}_${i}_c_${j}_gender`] ? 'border-error text-error' : ''}`} value={child.gender} onChange={e => { let arr = [...m.children]; arr[j].gender = e.target.value; updateMar(i, 'children', arr); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_c_${j}_gender`]: null })); }}><option value="Male">Male</option><option value="Female">Female</option></select>
+                            <div>
+                              <select className={`form-input text-sm ${formErrors[`${arrKey}_${i}_c_${j}_gender`] ? 'border-[2px] border-error text-error' : ''}`} value={child.gender} onChange={e => { let arr = [...m.children]; arr[j].gender = e.target.value; updateMar(i, 'children', arr); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_c_${j}_gender`]: null })); }}><option value="Male">Male</option><option value="Female">Female</option></select>
+                              {formErrors[`${arrKey}_${i}_c_${j}_gender`] && <div className="text-error text-[10px] font-bold mt-0.5">{formErrors[`${arrKey}_${i}_c_${j}_gender`]}</div>}
+                            </div>
                             <input type="text" placeholder="Birth Cert No" className="form-input text-sm" value={child.bc} onChange={e => { let arr = [...m.children]; arr[j].bc = e.target.value; updateMar(i, 'children', arr); }} />
                             <div>
-                              <input type="date" min="1900-01-01" className={`form-input text-sm mb-1 ${formErrors[`${arrKey}_${i}_c_${j}_dob`] ? 'border-error text-error' : ''}`} value={child.dob} onChange={e => { let arr = [...m.children]; arr[j].dob = e.target.value; updateMar(i, 'children', arr); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_c_${j}_dob`]: null })); }} />
-                              <div className="text-xs text-primary font-bold">{t('lbl_auto_age').replace('{age}', cAge)}</div>
+                              <input type="date" min="1900-01-01" className={`form-input text-sm mb-1 ${formErrors[`${arrKey}_${i}_c_${j}_dob`] ? 'border-[2px] border-error text-error' : ''}`} value={child.dob} onChange={e => { let arr = [...m.children]; arr[j].dob = e.target.value; updateMar(i, 'children', arr); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_c_${j}_dob`]: null })); }} />
+                              {formErrors[`${arrKey}_${i}_c_${j}_dob`] && <div className="text-error text-[10px] font-bold mt-0.5">{formErrors[`${arrKey}_${i}_c_${j}_dob`]}</div>}
+                              {!formErrors[`${arrKey}_${i}_c_${j}_dob`] && <div className="text-xs text-primary font-bold">{t('lbl_auto_age').replace('{age}', cAge)}</div>}
                             </div>
                           </div>
                           {cAge !== '' && cAge >= 16 && (
@@ -1403,7 +1416,7 @@ function App() {
             }
 
             if (Object.keys(errs).length > 0) {
-              setFormErrors({ ...formErrors, ...errs, global: "Format Error: Please review the RED bordered fields to resolve structural errors before submitting." });
+              setFormErrors({ ...formErrors, ...errs, global: t('err_format_red_fields') });
               return;
             }
 

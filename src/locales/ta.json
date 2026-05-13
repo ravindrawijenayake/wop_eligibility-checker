@@ -404,5 +404,6 @@
   "err_last_pension_before_retirement": "கடைசி ஓய்வூதிய கொடுப்பனவு தேதி ஓய்வு பெற்ற தேதிக்கு முன்னர் இருக்க முடியாது.",
   "err_dor_required": "ஓய்வு பெற்ற தேதி தேவை.",
   "err_doa_required": "நியமன தேதி தேவை.",
-  "err_service_category_required": "ரெகுலர் அல்லது தன்னார்வ படையை தேர்ந்தெடுக்கவும்."
+  "err_service_category_required": "ரெகுலர் அல்லது தன்னார்வ படையை தேர்ந்தெடுக்கவும்.",
+  "err_last_pension_required": "கடைசி ஓய்வூதிய கொடுப்பனவு தேதி தேவை."
 }
