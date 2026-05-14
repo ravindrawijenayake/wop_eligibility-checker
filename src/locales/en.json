@@ -421,5 +421,8 @@
   "err_void_case_required": "Case number is required.",
   "err_remarriage_date_required": "Remarriage date is required.",
   "err_spouse_dod_required": "Date of death of spouse is required.",
-  "err_child_dob_required": "Child date of birth is required."
+  "err_child_dob_required": "Child date of birth is required.",
+  "lbl_age_at_appointment": "Age at Appointment",
+  "lbl_age_at_retirement": "Age at Retirement",
+  "lbl_age_at_marriage": "Age at Marriage"
 }

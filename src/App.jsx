@@ -75,6 +75,24 @@ const computeAgeAtDate = (dobStr, targetDateStr) => {
   return age;
 };
 
+// Returns a human-readable Y/M/D age string between two dates
+const computeFullAge = (dobStr, targetDateStr) => {
+  if (!dobStr || !targetDateStr) return '';
+  const d1 = new Date(dobStr);
+  const d2 = new Date(targetDateStr);
+  if (d2 < d1) return '';
+  let years = d2.getFullYear() - d1.getFullYear();
+  let months = d2.getMonth() - d1.getMonth();
+  let days = d2.getDate() - d1.getDate();
+  if (days < 0) { months--; const prev = new Date(d2.getFullYear(), d2.getMonth(), 0); days += prev.getDate(); }
+  if (months < 0) { years--; months += 12; }
+  const parts = [];
+  if (years > 0) parts.push(`${years} yr${years !== 1 ? 's' : ''}`);
+  if (months > 0) parts.push(`${months} mo`);
+  if (days > 0 || parts.length === 0) parts.push(`${days} day${days !== 1 ? 's' : ''}`);
+  return parts.join(' ');
+};
+
 const validateLinearMarriages = (marriages, contributorDobStr, contributorGender, prefixKey, globalData = {}, t = (s) => s) => {
   const contributorDob = contributorDobStr ? new Date(contributorDobStr) : null;
   let errors = {};
@@ -653,6 +671,9 @@ function App() {
               <label className="label">{t('lbl_dor')}</label>
               <input type="date" min="1900-01-01" className={`form-input ${formErrors.p1dor ? 'border-[2px] border-error text-error' : ''}`} value={data.dor} onChange={e => { updateData('dor', e.target.value); setFormErrors(p => ({ ...p, p1dor: null })); }} />
               {formErrors.p1dor && <div className="text-error text-xs font-bold mt-1">{formErrors.p1dor}</div>}
+              {data.dob && data.dor && !formErrors.p1dor && (
+                <span className="inline-block mt-1 px-2 py-0.5 bg-primary text-white text-xs font-bold rounded">{t('lbl_age_at_retirement')}: {computeFullAge(data.dob, data.dor)}</span>
+              )}
             </div>
           )}
           {!data.isMissingPerson && data.dod && (
@@ -708,6 +729,9 @@ function App() {
             <label className="label">{t('lbl_doa')}</label>
             <input type="date" min="1900-01-01" className={`form-input ${formErrors.doa ? 'border-[2px] border-error text-error' : ''}`} value={data.doa} onChange={e => { updateData('doa', e.target.value); setFormErrors(prev => ({ ...prev, doa: null, svcCategory: null, militaryConsentDate: null })); }} />
             {formErrors.doa && <div className="text-error text-xs font-bold mt-1">{formErrors.doa}</div>}
+            {data.dob && data.doa && !formErrors.doa && (
+              <span className="inline-block mt-1 px-2 py-0.5 bg-primary text-white text-xs font-bold rounded">{t('lbl_age_at_appointment')}: {computeFullAge(data.dob, data.doa)}</span>
+            )}
           </div>
           <div className="form-row"><label className="label">{t('lbl_is_45')}</label><input type="text" className="form-input font-bold text-primary bg-surface-alt" disabled value={is45 ? t('msg_yes') : t('msg_no')} /></div>
         </div>
@@ -809,11 +833,12 @@ function App() {
                 else if (data.militaryConsentDate > '2012-12-31') { setFormErrors(errsA); handleRejection(t('err_military_consent_late_volunteer')); return; }
               }
             }
-            if (Object.keys(errsA).length > 0) { setFormErrors(prev => ({ ...prev, ...errsA, global: t('err_global_format') })); return; }
+            // Under-18 check: run before field errors so it can also set field error
             if (data.dob && data.doa) {
               const ageAtAppt = computeAgeAtDate(data.dob, data.doa);
-              if (ageAtAppt < 18) { handleRejection(t('err_under_18')); return; }
+              if (ageAtAppt < 18) errsA.doa = t('err_under_18');
             }
+            if (Object.keys(errsA).length > 0) { setFormErrors(prev => ({ ...prev, ...errsA, global: t('err_global_format') })); return; }
             if (is45 && !data.cabinetDate) { handleRejection(t('err_no_cabinet_approval')); return; }
             if (data.isPermanent === false && !(data.diedDueToTerrorism && !data.isPensioner) && !(data.serviceSector === 'Forces' && data.isPensioner && data.retiredDueToTerrorism)) {
               handleRejection(t('err_not_permanent')); return;
@@ -861,7 +886,13 @@ function App() {
         <div className="p-4 bg-surface-alt rounded mb-6 border border-subtle">
           <h4 className="font-bold text-primary mb-2">{t('lbl_pensioner_details')}</h4>
           <div className="grid grid-cols-2 gap-4">
-            <div className="form-row"><label className="label">{t('lbl_retired_date')}</label><input type="date" className="form-input bg-gray-100" disabled value={data.dor} /></div>
+            <div className="form-row">
+              <label className="label">{t('lbl_retired_date')}</label>
+              <input type="date" className="form-input bg-gray-100" disabled value={data.dor} />
+              {data.dob && data.dor && (
+                <span className="inline-block mt-1 px-2 py-0.5 bg-primary text-white text-xs font-bold rounded">{t('lbl_age_at_retirement')}: {computeFullAge(data.dob, data.dor)}</span>
+              )}
+            </div>
 
             <div className="form-row">
               <label className="label">{t('lbl_pension_commenced')}</label>
@@ -1081,6 +1112,9 @@ function App() {
                   <label className="label">{t('lbl_marriage_date')}</label>
                   <input type="date" min="1900-01-01" className={`form-input ${formErrors[`${arrKey}_${i}_date`] ? 'border-[2px] border-error text-error' : ''}`} value={m.date || ''} onChange={e => { updateMar(i, 'date', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_date`]: null })) }} />
                   {formErrors[`${arrKey}_${i}_date`] && <div className="text-error text-xs font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_date`]}</div>}
+                  {data.dob && m.date && !formErrors[`${arrKey}_${i}_date`] && (
+                    <span className="inline-block mt-1 px-2 py-0.5 bg-primary text-white text-xs font-bold rounded">{t('lbl_age_at_marriage')}: {computeFullAge(data.dob, m.date)}</span>
+                  )}
                 </div>
                 {/* Registration toggle */}
                 <div className="form-row m-0">

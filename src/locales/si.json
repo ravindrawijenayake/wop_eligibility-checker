@@ -422,5 +422,8 @@
   "err_void_case_required": "නඩු අංකය අවශ්‍ය වේ.",
   "err_remarriage_date_required": "නැවත විවාහ දිනය අවශ්‍ය වේ.",
   "err_spouse_dod_required": "කලත්‍රයාගේ මරණ දිනය අවශ්‍ය වේ.",
-  "err_child_dob_required": "දරුවාගේ උපන් දිනය අවශ්‍ය වේ."
+  "err_child_dob_required": "දරුවාගේ උපන් දිනය අවශ්‍ය වේ.",
+  "lbl_age_at_appointment": "පත්වීමේදී වයස",
+  "lbl_age_at_retirement": "විශ්‍රාම ගිය විට වයස",
+  "lbl_age_at_marriage": "විවාහ වූ විට වයස"
 }

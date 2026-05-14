@@ -421,5 +421,8 @@
   "err_void_case_required": "வழக்கு எண் தேவை.",
   "err_remarriage_date_required": "மறு திருமண தேதி தேவை.",
   "err_spouse_dod_required": "வாழ்க்கைத்துணையின் மரண தேதி தேவை.",
-  "err_child_dob_required": "குழந்தையின் பிறந்த தேதி தேவை."
+  "err_child_dob_required": "குழந்தையின் பிறந்த தேதி தேவை.",
+  "lbl_age_at_appointment": "நியமன வயது",
+  "lbl_age_at_retirement": "ஓய்வு பெற்ற வயது",
+  "lbl_age_at_marriage": "திருமண வயது"
 }
