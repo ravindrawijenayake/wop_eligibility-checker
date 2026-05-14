@@ -426,5 +426,6 @@
   "lbl_age_at_retirement": "ஓய்வு பெற்ற வயது",
   "lbl_age_at_marriage": "திருமண வயது",
   "msg_auto_filled_forces": "தானாக நிரப்பப்பட்டது",
-  "msg_forces_wop_same_as_number": "படையினரின் W&OP பதிவு எண், படை எண்ணோடு ஒன்றாகும்."
+  "msg_forces_wop_same_as_number": "படையினரின் W&OP பதிவு எண், படை எண்ணோடு ஒன்றாகும்.",
+  "lbl_time_since_complaint": "காவல் முறையீடு செய்தது முதல் கடந்த காலம்"
 }

@@ -662,6 +662,11 @@ function App() {
               <>
                 <input type="date" min="1900-01-01" className={`form-input ${formErrors.p1police ? 'border-[2px] border-error text-error' : ''}`} value={data.policeComplaintDate} onChange={e => { updateData('policeComplaintDate', e.target.value); setFormErrors(p => ({ ...p, p1police: null })); }} />
                 {formErrors.p1police && <div className="text-error text-xs font-bold mt-1">{formErrors.p1police}</div>}
+                {data.policeComplaintDate && !formErrors.p1police && (
+                  <span className="inline-block mt-1 px-2 py-0.5 bg-amber text-white text-xs font-bold rounded">
+                    {t('lbl_time_since_complaint')}: {computeFullAge(data.policeComplaintDate, new Date().toISOString().slice(0, 10))}
+                  </span>
+                )}
                 <div className="text-xs text-amber font-bold mt-1">{t('msg_waiting_period_validated')}</div>
               </>
             )}
@@ -2294,7 +2299,7 @@ function App() {
                 <h4 style={{ fontWeight: 700, marginBottom: '0.5rem', color: '#0284c7', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.25rem' }}>{t('lbl_marriage_idx')}{i + 1}</h4>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <tbody>
-                    <tr><td style={{ padding: '0.3rem', fontWeight: 600, width: '40%', color: '#475569' }}>{t('lbl_date_of_marriage')}</td><td style={{ padding: '0.3rem' }}>{formatDate(m.date) || t('msg_na')}</td></tr>
+                    <tr><td style={{ padding: '0.3rem', fontWeight: 600, width: '40%', color: '#475569' }}>{t('lbl_date_of_marriage')}</td><td style={{ padding: '0.3rem' }}>{formatDate(m.date) || t('msg_na')}{data.dob && m.date ? <span style={{ marginLeft: '0.5rem', background: '#1e3a5f', color: '#fff', fontSize: '0.65rem', fontWeight: 700, padding: '1px 5px', borderRadius: '4px' }}>{t('lbl_age_at_marriage')}: {computeFullAge(data.dob, m.date)}</span> : ''}</td></tr>
                     <tr style={{ background: '#f8fafc' }}><td style={{ padding: '0.3rem', fontWeight: 600, color: '#475569' }}>{t('lbl_spouse_name')}</td><td style={{ padding: '0.3rem' }}>{m.s_name || t('msg_na')}</td></tr>
                     <tr><td style={{ padding: '0.3rem', fontWeight: 600, color: '#475569' }}>{t('lbl_spouse_nic')}</td><td style={{ padding: '0.3rem' }}>{m.s_nic || t('msg_na')}</td></tr>
                     <tr style={{ background: '#f8fafc' }}><td style={{ padding: '0.3rem', fontWeight: 600, color: '#475569' }}>{t('lbl_spouse_alive')}</td><td style={{ padding: '0.3rem' }}>{m.s_alive === true ? t('opt_yes') : m.s_alive === false ? t('msg_no') : t('msg_na')}</td></tr>

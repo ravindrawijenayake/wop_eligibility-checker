@@ -426,5 +426,6 @@
   "lbl_age_at_retirement": "Age at Retirement",
   "lbl_age_at_marriage": "Age at Marriage",
   "msg_auto_filled_forces": "Auto-Filled",
-  "msg_forces_wop_same_as_number": "Forces W&OP registration number is the same as the Forces Number."
+  "msg_forces_wop_same_as_number": "Forces W&OP registration number is the same as the Forces Number.",
+  "lbl_time_since_complaint": "Time since police complaint"
 }
