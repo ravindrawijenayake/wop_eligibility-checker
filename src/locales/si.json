@@ -263,7 +263,7 @@
   "lbl_benefit_type": "ප්‍රතිලාභ වර්ගය",
   "lbl_contributor_name": "දායකයාගේ නම",
   "msg_not_provided": "ලබා නොදී",
-  "msg_missing_person_police": "නැතිවූ පුද්ගලයා | පොලිස් පැමිණිල්ලේ දිනය: ",
+  "msg_missing_person_police": "නැතිවූ පුද්ගලයා | පොලිස් පැමිණිල්ලේ දිනය: {date}",
   "lbl_service_status_death": "සේවා තත්ත්වය / මරණය",
   "msg_deceased_pensioner": "මියගිය විශ්‍රාමිකයා",
   "msg_deceased_in_service": "සේවයේ යෙදී සිටියදී මියගිය",
