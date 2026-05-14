@@ -405,5 +405,21 @@
   "err_dor_required": "ஓய்வு பெற்ற தேதி தேவை.",
   "err_doa_required": "நியமன தேதி தேவை.",
   "err_service_category_required": "ரெகுலர் அல்லது தன்னார்வ படையை தேர்ந்தெடுக்கவும்.",
-  "err_last_pension_required": "கடைசி ஓய்வூதிய கொடுப்பனவு தேதி தேவை."
+  "err_last_pension_required": "கடைசி ஓய்வூதிய கொடுப்பனவு தேதி தேவை.",
+  "err_member_number_required": "WOP பதிவு எண் தேவை.",
+  "err_pension_commenced_required": "ஓய்வூதிய கொடுப்பனவு தொடங்கியதா என்பதை குறிப்பிடவும்.",
+  "err_loss_date_required": "ஓய்வூதிய இழப்பு தேதி தேவை.",
+  "err_loss_reason_required": "ஓய்வூதிய இழப்பிற்கான காரணத்தை தேர்ந்தெடுக்கவும்.",
+  "err_marriage_date_required": "திருமண தேதி தேவை.",
+  "err_cert_required": "திருமண சான்றிதழ் எண் தேவை.",
+  "err_spouse_name_required": "வாழ்க்கைத்துணையின் முழு பெயர் தேவை.",
+  "err_decree_nisi_required": "Decree Nisi தேதி தேவை.",
+  "err_decree_absolute_required": "Decree Absolute தேதி தேவை.",
+  "err_sep_date_required": "பிரிவு தேதி தேவை.",
+  "err_void_date_required": "நீதிமன்ற ஆணை தேதி தேவை.",
+  "err_void_court_required": "நீதிமன்றத்தின் பெயர் தேவை.",
+  "err_void_case_required": "வழக்கு எண் தேவை.",
+  "err_remarriage_date_required": "மறு திருமண தேதி தேவை.",
+  "err_spouse_dod_required": "வாழ்க்கைத்துணையின் மரண தேதி தேவை.",
+  "err_child_dob_required": "குழந்தையின் பிறந்த தேதி தேவை."
 }
