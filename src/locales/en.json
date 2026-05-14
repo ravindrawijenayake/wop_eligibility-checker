@@ -427,5 +427,9 @@
   "lbl_age_at_marriage": "Age at Marriage",
   "msg_auto_filled_forces": "Auto-Filled",
   "msg_forces_wop_same_as_number": "Forces W&OP registration number is the same as the Forces Number.",
-  "lbl_time_since_complaint": "Time since police complaint"
+  "lbl_time_since_complaint": "Time since police complaint",
+  "msg_overpayment_deceased": "⚠ Overpayment Alert: Pension was paid for {months} month(s) after the date of death. Recovery action required.",
+  "msg_overpayment_missing": "⚠ Overpayment Alert: Pension was paid for {months} month(s) after the police complaint date. Recovery action required from the date the person was reported missing.",
+  "msg_missing_abroad_note": "ℹ Note: If the contributor went missing while abroad (including those engaged in foreign conflicts such as the Russia-Ukraine war), the police complaint date is used as the overpayment reference date. Supporting documentation from foreign authorities or employer may be required.",
+  "msg_missing_abroad_pension_note": "ℹ Important: For pensioners reported missing while abroad (including war zones such as Russia-Ukraine), pension overpayment is calculated from the date of police complaint. The DG may require additional evidence from the foreign employer, Sri Lanka Embassy, or relevant foreign authorities to confirm the date of disappearance."
 }

@@ -328,12 +328,16 @@ function App() {
   }, [data.doa, data.dor, data.dod, data.uncountablePeriods, data.isPensioner, data.lossOfPensionDate, data.endedWithLossOfPension]);
 
   // --- OVERPAYMENT CALCULATOR ---
+  // For deceased pensioners: overpayment = months between dod and lastPensionPaymentDate
+  // For missing pensioners: overpayment = months between policeComplaintDate and lastPensionPaymentDate
   const calculateOverpayment = () => {
-    if (!data.dod || !data.lastPensionPaymentDate) return 0;
-    const dodDt = new Date(data.dod);
+    if (!data.lastPensionPaymentDate) return 0;
+    const refDate = data.isMissingPerson ? data.policeComplaintDate : data.dod;
+    if (!refDate) return 0;
+    const refDt = new Date(refDate);
     const lppDt = new Date(data.lastPensionPaymentDate);
-    // Standard Overpayment Month Difference Calculation
-    const diffMonths = (lppDt.getFullYear() - dodDt.getFullYear()) * 12 + (lppDt.getMonth() - dodDt.getMonth());
+    // Overpayment = pension paid after the reference event date
+    const diffMonths = (lppDt.getFullYear() - refDt.getFullYear()) * 12 + (lppDt.getMonth() - refDt.getMonth());
     return diffMonths > 0 ? diffMonths : 0;
   };
   const overpaidMonths = calculateOverpayment();
@@ -668,6 +672,9 @@ function App() {
                   </span>
                 )}
                 <div className="text-xs text-amber font-bold mt-1">{t('msg_waiting_period_validated')}</div>
+                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs font-bold text-blue-800">
+                  {t('msg_missing_abroad_note')}
+                </div>
               </>
             )}
           </div>
@@ -929,8 +936,10 @@ function App() {
                     <div className="text-error text-xs font-bold mt-1">{t('err_last_pension_before_retirement')}</div>
                   )}
                   {overpaidMonths > 0 && (
-                    <div className="mt-2 text-sm font-bold text-error">
-                      An overpayment for {overpaidMonths} month{overpaidMonths > 1 ? 's' : ''}
+                    <div className="mt-2 p-2 bg-red-50 border border-error rounded text-sm font-bold text-error">
+                      {data.isMissingPerson
+                        ? t('msg_overpayment_missing').replace('{months}', overpaidMonths)
+                        : t('msg_overpayment_deceased').replace('{months}', overpaidMonths)}
                     </div>
                   )}
                 </div>
@@ -942,6 +951,12 @@ function App() {
               )}
             </div>
           </div>
+          {/* Missing pensioner abroad / war zone note */}
+          {data.isMissingPerson && (
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded animate-fade-in">
+              <p className="text-xs font-bold text-blue-900">{t('msg_missing_abroad_pension_note')}</p>
+            </div>
+          )}
         </div>
       ) : (
         <div className="animate-fade-in p-4 bg-surface-alt rounded mb-6 border border-subtle">
