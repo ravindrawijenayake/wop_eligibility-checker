@@ -260,7 +260,7 @@ function App() {
   const [data, setData] = useState({
     isPensioner: true, name: '', gender: 'Male', nic: '', dob: '', dod: '', dor: '',
     doa: '', cabinetDate: '', isPermanent: true, femaleConsent: '',
-    isMissingPerson: false, policeComplaintDate: '', diedDueToTerrorism: false,
+    isMissingPerson: false, policeComplaintDate: '', missingLocation: '', diedDueToTerrorism: false,
     memberNumber: '', registrationValid: true, contributionRecovered: true,
     lastPensionPaymentDate: '', pensionNotCommenced: false,
     endedWithLossOfPension: false, lossOfPensionDate: '', lossOfPensionReason: '',
@@ -428,7 +428,15 @@ function App() {
     // Base Contributor Docs
     docs.push({ id: 'c_bc', label: `${contributorPrefix} Birth Certificate [Original certified by Additional/District Registrar]`, required: true });
     docs.push({ id: 'c_nic', label: `${contributorPrefix} NIC/SLNIC [Certified Copy]`, required: true });
-    docs.push({ id: 'c_dc', label: `${contributorPrefix} Death Certificate [Original certified by Additional/District Registrar]`, required: true });
+    if (data.isMissingPerson) {
+      if (data.missingLocation === 'Sri Lanka') {
+        docs.push({ id: 'c_police_complaint', label: `${contributorPrefix} Certified Copy of Police Complaint (from the relevant Police Station) regarding the disappearance`, required: true });
+      } else if (data.missingLocation === 'Abroad') {
+        docs.push({ id: 'c_consular_letter', label: `${contributorPrefix} Confirmation Letter from the Consular Division, Ministry of Foreign Affairs (Sri Lanka) confirming the disappearance`, required: true });
+      }
+    } else {
+      docs.push({ id: 'c_dc', label: `${contributorPrefix} Death Certificate [Original certified by Additional/District Registrar]`, required: true });
+    }
     docs.push({ id: 'c_apt', label: `${contributorPrefix} Appointment Letter (From Civil Pension File)`, required: true });
 
     if (data.isPensioner) {
@@ -582,6 +590,7 @@ function App() {
       if (!data.isMissingPerson && !data.dod) errs.p1dod = 'Required';
       if (!data.isMissingPerson && data.dod && !data.deathCertNo) errs.p1deathCert = t('err_death_cert_required');
       if (data.isMissingPerson && !data.policeComplaintDate) errs.p1police = 'Required';
+      if (data.isMissingPerson && !data.missingLocation) errs.missingLocation = t('err_missing_location_required');
       if (data.serviceSector === 'Forces' && !data.officerNumber) errs.p1officerNo = t('err_officer_number_required');
       if (data.isPensioner && !data.dor) errs.p1dor = t('err_dor_required');
 
@@ -672,8 +681,24 @@ function App() {
                   </span>
                 )}
                 <div className="text-xs text-amber font-bold mt-1">{t('msg_waiting_period_validated')}</div>
-                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs font-bold text-blue-800">
-                  {t('msg_missing_abroad_note')}
+                {/* Location of disappearance */}
+                <div className="mt-3 p-3 bg-surface-alt border border-subtle rounded animate-fade-in">
+                  <label className="label font-bold mb-2">{t('lbl_missing_location')}</label>
+                  <div className={`flex gap-4 ${formErrors.missingLocation ? 'p-2 rounded border-[2px] border-error bg-red-50' : ''}`}>
+                    <label className="cursor-pointer font-bold text-sm"><input type="radio" checked={data.missingLocation === 'Sri Lanka'} onChange={() => { updateData('missingLocation', 'Sri Lanka'); setFormErrors(p => ({ ...p, missingLocation: null })); }} /> {t('opt_missing_sri_lanka')}</label>
+                    <label className="cursor-pointer font-bold text-sm"><input type="radio" checked={data.missingLocation === 'Abroad'} onChange={() => { updateData('missingLocation', 'Abroad'); setFormErrors(p => ({ ...p, missingLocation: null })); }} /> {t('opt_missing_abroad')}</label>
+                  </div>
+                  {formErrors.missingLocation && <div className="text-error text-xs font-bold mt-1">{formErrors.missingLocation}</div>}
+                  {data.missingLocation === 'Sri Lanka' && (
+                    <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-900 font-bold animate-fade-in">
+                      {t('msg_missing_sri_lanka_doc_note')}
+                    </div>
+                  )}
+                  {data.missingLocation === 'Abroad' && (
+                    <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-900 font-bold animate-fade-in">
+                      {t('msg_missing_abroad_doc_note')}
+                    </div>
+                  )}
                 </div>
               </>
             )}
@@ -952,7 +977,7 @@ function App() {
             </div>
           </div>
           {/* Missing pensioner abroad / war zone note */}
-          {data.isMissingPerson && (
+          {data.isMissingPerson && data.missingLocation === 'Abroad' && (
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded animate-fade-in">
               <p className="text-xs font-bold text-blue-900">{t('msg_missing_abroad_pension_note')}</p>
             </div>

@@ -431,5 +431,11 @@
   "msg_overpayment_deceased": "⚠ Overpayment Alert: Pension was paid for {months} month(s) after the date of death. Recovery action required.",
   "msg_overpayment_missing": "⚠ Overpayment Alert: Pension was paid for {months} month(s) after the police complaint date. Recovery action required from the date the person was reported missing.",
   "msg_missing_abroad_note": "ℹ Note: If the contributor went missing while abroad (including those engaged in foreign conflicts such as the Russia-Ukraine war), the police complaint date is used as the overpayment reference date. Supporting documentation from foreign authorities or employer may be required.",
-  "msg_missing_abroad_pension_note": "ℹ Important: For pensioners reported missing while abroad (including war zones such as Russia-Ukraine), pension overpayment is calculated from the date of police complaint. The DG may require additional evidence from the foreign employer, Sri Lanka Embassy, or relevant foreign authorities to confirm the date of disappearance."
+  "msg_missing_abroad_pension_note": "ℹ Important: For pensioners reported missing while abroad (including war zones such as Russia-Ukraine), pension overpayment is calculated from the date of police complaint. The DG may require additional evidence from the foreign employer, Sri Lanka Embassy, or relevant foreign authorities to confirm the date of disappearance.",
+  "lbl_missing_location": "Where did the disappearance occur?",
+  "opt_missing_sri_lanka": "Within Sri Lanka",
+  "opt_missing_abroad": "Outside Sri Lanka (Abroad)",
+  "err_missing_location_required": "Please indicate where the disappearance occurred.",
+  "msg_missing_sri_lanka_doc_note": "📋 Required Document: A certified copy of the police complaint must be obtained from the relevant police station where the missing report was filed.",
+  "msg_missing_abroad_doc_note": "📋 Required Document: A Confirmation Letter from the Consular Division, Ministry of Foreign Affairs (Sri Lanka) is required to confirm the disappearance occurred abroad."
 }
