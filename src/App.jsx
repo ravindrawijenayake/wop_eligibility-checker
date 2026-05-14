@@ -775,7 +775,7 @@ function App() {
         {data.serviceSector === 'Forces' && (
           <div className="mb-6 p-4 bg-surface-alt border border-subtle rounded animate-fade-in">
             <label className="label font-bold">{t('lbl_officer_number')} <span className="text-error">*</span></label>
-            <input type="text" className={`form-input max-w-sm ${formErrors.p1officerNo ? 'border-[2px] border-error text-error' : ''}`} value={data.officerNumber} onChange={e => { updateData('officerNumber', e.target.value); setFormErrors(p => ({ ...p, p1officerNo: null })); }} />
+            <input type="text" className={`form-input max-w-sm ${formErrors.p1officerNo ? 'border-[2px] border-error text-error' : ''}`} value={data.officerNumber} onChange={e => { updateData('officerNumber', e.target.value); updateData('memberNumber', e.target.value); setFormErrors(p => ({ ...p, p1officerNo: null, memberNumber: null })); }} />
             {formErrors.p1officerNo && <div className="text-error text-xs font-bold mt-1">{formErrors.p1officerNo}</div>}
           </div>
         )}
@@ -866,8 +866,20 @@ function App() {
         {data.registrationValid && (
           <div className="mt-3 form-row max-w-sm">
             <label className={formErrors.memberNumber ? 'label text-error font-bold' : 'label'}>{t('lbl_wop_no')}</label>
-            <input type="text" className={`form-input ${formErrors.memberNumber ? 'border-[2px] border-error text-error' : ''}`} value={data.memberNumber} onChange={e => { updateData('memberNumber', e.target.value); setFormErrors(p => ({ ...p, memberNumber: null })); }} />
-            {formErrors.memberNumber && <div className="text-error text-xs font-bold mt-1">{formErrors.memberNumber}</div>}
+            {data.serviceSector === 'Forces' ? (
+              <>
+                <input type="text" className="form-input bg-primary/5 border-primary font-bold text-primary" value={data.memberNumber} readOnly />
+                <div className="mt-1 flex items-center gap-1.5">
+                  <span className="inline-block px-2 py-0.5 bg-primary text-white text-xs font-bold rounded">{t('msg_auto_filled_forces')}</span>
+                  <span className="text-xs text-muted">{t('msg_forces_wop_same_as_number')}</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <input type="text" className={`form-input ${formErrors.memberNumber ? 'border-[2px] border-error text-error' : ''}`} value={data.memberNumber} onChange={e => { updateData('memberNumber', e.target.value); setFormErrors(p => ({ ...p, memberNumber: null })); }} />
+                {formErrors.memberNumber && <div className="text-error text-xs font-bold mt-1">{formErrors.memberNumber}</div>}
+              </>
+            )}
           </div>
         )}
       </div>
@@ -987,8 +999,8 @@ function App() {
         <button className="btn btn-secondary" onClick={() => setCheckerStep(1)}><ChevronLeft size={20} /> {t('btn_back')}</button>
         <button className="btn" onClick={() => {
           const errsBC = {};
-          // WOP registration
-          if (data.registrationValid && !data.memberNumber) errsBC.memberNumber = t('err_member_number_required');
+          // WOP registration — Forces members' number IS their WOP number (auto-filled)
+          if (data.registrationValid && !data.memberNumber && data.serviceSector !== 'Forces') errsBC.memberNumber = t('err_member_number_required');
           // Pensioner checks
           if (data.isPensioner && !data.dor) errsBC.p1dor = t('err_dor_required');
           if (data.isPensioner && data.pensionNotCommenced === undefined) errsBC.pensionCommenced = t('err_pension_commenced_required');

@@ -425,5 +425,7 @@
   "err_child_dob_required": "දරුවාගේ උපන් දිනය අවශ්‍ය වේ.",
   "lbl_age_at_appointment": "පත්වීමේදී වයස",
   "lbl_age_at_retirement": "විශ්‍රාම ගිය විට වයස",
-  "lbl_age_at_marriage": "විවාහ වූ විට වයස"
+  "lbl_age_at_marriage": "විවාහ වූ විට වයස",
+  "msg_auto_filled_forces": "ස්වයංක්‍රීයව පිරවිණ",
+  "msg_forces_wop_same_as_number": "ත්‍රිවිධ හමුදාවේ W&OP ලියාපදිංචි අංකය, හමුදා අංකයම වේ."
 }

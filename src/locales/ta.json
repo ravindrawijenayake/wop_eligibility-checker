@@ -424,5 +424,7 @@
   "err_child_dob_required": "குழந்தையின் பிறந்த தேதி தேவை.",
   "lbl_age_at_appointment": "நியமன வயது",
   "lbl_age_at_retirement": "ஓய்வு பெற்ற வயது",
-  "lbl_age_at_marriage": "திருமண வயது"
+  "lbl_age_at_marriage": "திருமண வயது",
+  "msg_auto_filled_forces": "தானாக நிரப்பப்பட்டது",
+  "msg_forces_wop_same_as_number": "படையினரின் W&OP பதிவு எண், படை எண்ணோடு ஒன்றாகும்."
 }
