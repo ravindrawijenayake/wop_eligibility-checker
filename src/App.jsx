@@ -976,12 +976,7 @@ function App() {
               )}
             </div>
           </div>
-          {/* Missing pensioner abroad / war zone note */}
-          {data.isMissingPerson && data.missingLocation === 'Abroad' && (
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded animate-fade-in">
-              <p className="text-xs font-bold text-blue-900">{t('msg_missing_abroad_pension_note')}</p>
-            </div>
-          )}
+
         </div>
       ) : (
         <div className="animate-fade-in p-4 bg-surface-alt rounded mb-6 border border-subtle">
