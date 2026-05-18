@@ -735,7 +735,7 @@ function App() {
           <div className="inline-flex justify-center items-center p-4 bg-indigo-50 rounded-full mb-6" style={{boxShadow: '0 0 20px rgba(2, 132, 199, 0.15)'}}>
             <ShieldCheck size={56} className="text-primary" />
           </div>
-          <h2 className="text-4xl lg:text-5xl font-extrabold mb-4 text-gray-900 tracking-tight" style={{fontFamily: 'Outfit, sans-serif'}}>{t('app_title')}</h2>
+          <h2 className="text-5xl lg:text-6xl font-black mb-4 gradient-text tracking-tight" style={{fontFamily: 'Outfit, sans-serif'}}>{t('app_title')}</h2>
           <p className="text-xl text-primary font-bold mb-6">{t('app_subtitle')}</p>
           <p className="text-base text-gray-700 leading-relaxed font-medium">
             Welcome to the Widows’ and Orphans’ Pensions (W&OP) Eligibility Checker, an intuitive and user-friendly digital platform designed to help public sector employees and their families seamlessly determine their qualification for survivor benefits. By entering a few key details regarding service history and familial status, this tool securely evaluates your information against official regulatory guidelines to provide instant, clear guidance on your status. Streamlining what was once a complex manual process, this interactive checker ensures transparent, accurate, and accessible information, empowering you to navigate your pension benefits with absolute confidence.
@@ -2984,7 +2984,7 @@ function App() {
   const checkerRenderer = [Part1A, SectionA, SectionB_C, SectionD, SectionE_F, SectionF_DisabledOps, Section_Docs, SectionF];
 
   return (
-    <div className="app-container">
+    <div className={`app-container ${viewState === 'auth' ? 'mesh-bg' : ''}`}>
       <div className={`w-full mx-auto ${viewState === 'auth' ? 'max-w-7xl' : 'max-w-4xl'}`}>
         <div className="flex justify-end p-4 print-hide">
           <select 
