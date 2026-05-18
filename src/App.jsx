@@ -5,6 +5,176 @@ import './App.css';
 import bannerImg from './assets/WOP_banner.png';
 
 // --- UTILITIES ---
+// ============================================================
+// STATUTORY LEGAL REFERENCE REGISTRY
+// Each key maps to { en, si, ta } citation strings.
+// Used by LegalBadge component throughout the UI and print.
+// ============================================================
+const LEGAL_REFS = {
+  // --- CIVIL CONTRIBUTOR ---
+  male_civil_mandatory: {
+    en: "Widows' & Orphans' Pension Fund Ordinance No. 1/1898",
+    si: 'ක්ෂේ.ව. විශ්‍රාම වැටුප් අරමුදල් ආඥාපනත අංක 01/1898',
+    ta: 'விதவை & அனாதை ஓய்வூதிய நிதி அவசரச் சட்டம் எண் 01/1898'
+  },
+  female_civil_post1983: {
+    en: "Widowers' & Orphans' Pension Act No. 24/1983, S.3(1)",
+    si: 'ව.ක්ෂේ. & අනත්දරු විශ්‍රාම වැටුප් පනත අංක 24/1983, ධ.3(1)',
+    ta: 'விதுரர் & அனாதை ஓய்வூதியச் சட்டம் எண் 24/1983, பிரிவு 3(1)'
+  },
+  female_civil_pre1983_opt: {
+    en: "Act No. 24/1983 S.3(1); Act No. 19/1985; Circular 03/2014 (opt-in deadline: 31 Dec 2014)",
+    si: 'පනත 24/1983 ධ.3(1); පනත 19/1985; චක්‍රලේඛ 03/2014 (ඇතුළත් වීමේ අවසාන දිනය: 2014.12.31)',
+    ta: 'சட்டம் 24/1983 பிரிவு 3(1); சட்டம் 19/1985; சுற்றறிக்கை 03/2014 (இணைவதற்கான இறுதி தேதி: 31 டிசம்பர் 2014)'
+  },
+  female_civil_pre1983_ineligible: {
+    en: "Pension Circular No. 03/2014 — opt-in deadline expired 31 Dec 2014",
+    si: 'විශ්‍රාම වැටුප් චක්‍රලේඛ 03/2014 — ඇතුළත් වීමේ අවසාන දිනය 2014.12.31 ගෙවී ඇත',
+    ta: 'ஓய்வூதியச் சுற்றறிக்கை எண் 03/2014 — இணைவதற்கான இறுதி தேதி 31 டிசம்பர் 2014 கடந்துவிட்டது'
+  },
+  non_pensionable_ineligible: {
+    en: "Ordinance No. 1/1898 — permanent & pensionable post is mandatory for eligibility",
+    si: 'ආඥාපනත 01/1898 — සුදුසුකම් සඳහා ස්ථිර හා විශ්‍රාම-ලාභ නිලයක් අනිවාර්ය වේ',
+    ta: 'அவசரச் சட்டம் 01/1898 — தகுதிக்கு நிரந்தரமான ஓய்வூதியம் பெறத்தகுந்த பதவி கட்டாயமாகும்'
+  },
+  under10yrs_no_pension: {
+    en: "Ordinance No. 1/1898 — contributions refundable; service ended without pension (<10 yrs)",
+    si: 'ආඥාපනත 01/1898 — දායක මුදල් ආපසු ලබා ගත හැකිය; මාස 120 ට අඩු සේවා කාලයකින් විශ්‍රාමයකින් තොරව සේවය අවසන්',
+    ta: 'அவசரச் சட்டம் 01/1898 — பங்களிப்புகள் திரும்பப் பெறலாம்; ஓய்வூதியமின்றி சேவை முடிந்தது (<10 ஆண்டுகள்)'
+  },
+  age_at_appointment_min18: {
+    en: "Ordinance No. 1/1898 — minimum age 18 at date of appointment",
+    si: 'ආඥාපනත 01/1898 — පත්වීමේ දිනයේදී අවම වයස අවුරුදු 18 විය යුතුය',
+    ta: 'அவசரச் சட்டம் 01/1898 — நியமன தேதியில் குறைந்தபட்ச வயது 18 ஆண்டுகள்'
+  },
+  age_65_in_service: {
+    en: "Ordinance No. 1/1898 — statutory upper age limit for in-service contributors",
+    si: 'ආඥාපනත 01/1898 — සේවයේ සිටින දායකයින් සඳහා නීත්‍යානුකූල ඉහළ වයස් සීමාව',
+    ta: 'அவசரச் சட்டம் 01/1898 — சேவையில் உள்ள பங்களிப்பாளர்களுக்கான சட்டரீதியான ஆகிய வயது வரம்பு'
+  },
+  // --- FORCES CONTRIBUTOR ---
+  forces_male_regular: {
+    en: "W&O Pension Scheme (Armed Forces) Act No. 18/1970 — mandatory from 30 Sep 1968",
+    si: 'ව.ක්ෂේ. විශ්‍රාම ක්‍රමය (සන්නද්ධ හමුදා) පනත 18/1970 — 1968.09.30 සිට අනිවාර්ය',
+    ta: 'வி.&அ. ஓய்வூதியத் திட்டம் (ஆயுத படை) சட்டம் எண் 18/1970 — 30 செப்டம்பர் 1968 முதல் கட்டாயம்'
+  },
+  forces_female_regular: {
+    en: "W&O Pension Scheme (Armed Forces) Act No. 60/1998",
+    si: 'ව.ක්ෂේ. විශ්‍රාම ක්‍රමය (සන්නද්ධ හමුදා) පනත 60/1998',
+    ta: 'வி.&அ. ஓய்வூதியத் திட்டம் (ஆயுத படை) சட்டம் எண் 60/1998'
+  },
+  forces_volunteer_opt: {
+    en: "Pension Circular No. 10/2009; Circular No. 02/2012 (opt-in deadline: 31 Dec 2012)",
+    si: 'විශ්‍රාම චක්‍රලේඛ 10/2009; චක්‍රලේඛ 02/2012 (ඇතුළත් වීමේ අවසාන දිනය: 2012.12.31)',
+    ta: 'ஓய்வூதியச் சுற்றறிக்கை 10/2009; சுற்றறிக்கை 02/2012 (இணைவதற்கான இறுதி தேதி: 31 டிசம்பர் 2012)'
+  },
+  forces_pre1968_opt: {
+    en: "Pension Circular No. 03/2006 — opt-in deadline: 30 Jun 2006",
+    si: 'විශ්‍රාම චක්‍රලේඛ 03/2006 — ඇතුළත් වීමේ අවසාන දිනය: 2006.06.30',
+    ta: 'ஓய்வூதியச் சுற்றறிக்கை 03/2006 — இணைவதற்கான இறுதி தேதி: 30 ஜூன் 2006'
+  },
+  forces_regular_consent_late: {
+    en: "Pension Circular No. 03/2006 — opt-in deadline expired 30 Jun 2006",
+    si: 'විශ්‍රාම චක්‍රලේඛ 03/2006 — ඇතුළත් වීමේ අවසාන දිනය 2006.06.30 ගෙවී ඇත',
+    ta: 'ஓய்வூதியச் சுற்றறிக்கை 03/2006 — இணைவதற்கான இறுதி தேதி 30 ஜூன் 2006 கடந்துவிட்டது'
+  },
+  forces_volunteer_consent_late: {
+    en: "Pension Circular No. 02/2012 — opt-in deadline expired 31 Dec 2012",
+    si: 'විශ්‍රාම චක්‍රලේඛ 02/2012 — ඇතුළත් වීමේ අවසාන දිනය 2012.12.31 ගෙවී ඇත',
+    ta: 'ஓய்வூதியச் சுற்றறிக்கை 02/2012 — இணைவதற்கான இறுதி தேதி 31 டிசம்பர் 2012 கடந்துவிட்டது'
+  },
+  // --- SPOUSE ---
+  marriage_1yr_male_civil: {
+    en: "Ordinance No. 1/1898, S.28 — marriage < 12 months, no children: widow ineligible",
+    si: 'ආඥාපනත 01/1898, ධ.28 — විවාහය මාස 12 ට අඩු, දරුවන් නොමැති: වැන්දඹුව සුදුකම් නොලැබේ',
+    ta: 'அவசரச் சட்டம் 01/1898, பிரிவு 28 — திருமணம் < 12 மாதம், பிள்ளைகள் இல்லை: விதவை தகுதியற்றவர்'
+  },
+  marriage_1yr_female_civil: {
+    en: "Act No. 24/1983, S.11 — marriage < 12 months, no children: widower ineligible",
+    si: 'පනත 24/1983, ධ.11 — විවාහය මාස 12 ට අඩු, දරුවන් නොමැති: වැන්දඹු පුරුෂයා සුදුකම් නොලැබේ',
+    ta: 'சட்டம் 24/1983, பிரிவு 11 — திருமணம் < 12 மாதம், பிள்ளைகள் இல்லை: விதுரர் தகுதியற்றவர்'
+  },
+  marriage_1yr_male_forces: {
+    en: "W&O Pension Scheme (Armed Forces) Regulations 1970, Reg. 27(1)",
+    si: 'ව.ක්ෂේ. විශ්‍රාම ක්‍රමය (සන්නද්ධ හමුදා) රෙගුලාසි 1970, රෙගු. 27(1)',
+    ta: 'வி.&அ. ஓய்வூதியத் திட்டம் (ஆயுத படை) விதிமுறைகள் 1970, விதி 27(1)'
+  },
+  marriage_1yr_female_forces: {
+    en: "Act No. 60/1998, S.26(1) — marriage < 12 months, no children: widower ineligible",
+    si: 'පනත 60/1998, ධ.26(1) — විවාහය මාස 12 ට අඩු, දරුවන් නොමැති: වැන්දඹු පුරුෂයා සුදුකම් නොලැබේ',
+    ta: 'சட்டம் 60/1998, பிரிவு 26(1) — திருமணம் < 12 மாதம், பிள்ளைகள் இல்லை: விதுரர் தகுதியற்றவர்'
+  },
+  post_retirement_marriage: {
+    en: "Act No. 24/1983, S.25 — spouse/children from post-contribution marriage ineligible",
+    si: 'පනත 24/1983, ධ.25 — දායක ගෙවීම් අවසන් වීමෙන් පසු විවාහ වූ අය සුදුකම් නොලැබේ',
+    ta: 'சட்டம் 24/1983, பிரிவு 25 — பங்களிப்பு நிறுத்தத்திற்கு பின் திருமணம் செய்தோர் தகுதியற்றவர்'
+  },
+  remarriage_50pct_male: {
+    en: "Amendment Act No. 08/2010 (replacing Ordinance No. 1/1898, S.34) — 50% on remarriage",
+    si: 'සංශෝධන පනත 08/2010 (ආඥාපනත 01/1898, ධ.34 ප්‍රතිස්ථාපනය) — නැවත විවාහයේදී 50%',
+    ta: 'திருத்தச் சட்டம் 08/2010 (அவசரச் சட்டம் 01/1898, பிரிவு 34 மாற்றீடு) — மறுமணத்தில் 50%'
+  },
+  remarriage_50pct_female: {
+    en: "Amendment Act No. 09/2010 (replacing Act No. 24/1983, S.18) — 50% on remarriage",
+    si: 'සංශෝධන පනත 09/2010 (පනත 24/1983, ධ.18 ප්‍රතිස්ථාපනය) — නැවත විවාහයේදී 50%',
+    ta: 'திருத்தச் சட்டம் 09/2010 (சட்டம் 24/1983, பிரிவு 18 மாற்றீடு) — மறுமணத்தில் 50%'
+  },
+  dg_discretion_marriage: {
+    en: "Act No. 18/1970, S.37; Act No. 60/1998, S.36 — DG has discretion to award pension",
+    si: 'පනත 18/1970, ධ.37; පනත 60/1998, ධ.36 — DG හට විශ්‍රාමය ප්‍රදානය කිරීමේ අභිමතාධිකාරය ඇත',
+    ta: 'சட்டம் 18/1970, பிரிவு 37; சட்டம் 60/1998, பிரிவு 36 — DG விருப்பப்படி ஓய்வூதியம் வழங்கலாம்'
+  },
+  // --- ORPHAN ---
+  orphan_age_21: {
+    en: "Ordinance No. 1/1898, S.29 — orphan eligible until age 21 (general)",
+    si: 'ආඥාපනත 01/1898, ධ.29 — අනත්දරුවා සාමාන්‍යයෙන් වයස 21 දක්වා සුදුකම් ලැබේ',
+    ta: 'அவசரச் சட்டம் 01/1898, பிரிவு 29 — அனாதை பொதுவாக 21 வயது வரை தகுதியானவர்'
+  },
+  orphan_age_26_unemployed: {
+    en: "Pension Circular No. 13/2010, S.4.2; W&OP Circular No. 01/99 — extended to age 26 if unemployed",
+    si: 'විශ්‍රාම චක්‍රලේඛ 13/2010, ධ.4.2; ව.ක්ෂේ. චක්‍රලේඛ 01/99 — රැකියා රහිත නම් වයස 26 දක්වා දිගු කෙරේ',
+    ta: 'ஓய்வூதியச் சுற்றறிக்கை 13/2010, பிரிவு 4.2; வி.&அ. சுற்றறிக்கை 01/99 — வேலையில்லா நிலையில் 26 வயது வரை நீட்டிக்கப்படும்'
+  },
+  orphan_employment_ineligible: {
+    en: "Pension Circular No. 01/99, S.5 — orphan ineligible if employed (pensionable post, provident fund, foreign employment, or taxable income)",
+    si: 'විශ්‍රාම චක්‍රලේඛ 01/99, ධ.5 — රැකියාවේ යෙදී ඇත්නම් (විශ්‍රාම-ලාභ රාජ්‍ය රැකියා, අර්ථ සාධක අරමුදල්, විදේශ රැකියා, හෝ ආදායම් බදු ගෙවන) අනත්දරුවා සුදුකම් නොලැබේ',
+    ta: 'ஓய்வூதியச் சுற்றறிக்கை 01/99, பிரிவு 5 — வேலையில் இருந்தால் (ஓய்வூதியப் பதவி, வருங்கால வைப்பு நிதி, வெளிநாட்டு வேலை அல்லது வரிக்குட்பட்ட வருமானம்) அனாதை தகுதியற்றவர்'
+  },
+  orphan_adoption: {
+    en: "Ordinance No. 1/1898, S.33 (amended by Act No. 44/1981); Act No. 24/1983, S.17 — legally adopted children treated equally",
+    si: 'ආඥාපනත 01/1898, ධ.33 (44/1981 ින් සංශෝධිත); පනත 24/1983, ධ.17 — නීත්‍යානුකූලව ෆිස් අනාතොල් දරුවන් සමාන ලෙස සලකනු ලැබේ',
+    ta: 'அவசரச் சட்டம் 01/1898, பிரிவு 33 (சட்டம் 44/1981 திருத்தம்); சட்டம் 24/1983, பிரிவு 17 — சட்டரீதியாக தத்தெடுக்கப்பட்ட குழந்தைகள் சமமாக நடத்தப்படுவர்'
+  },
+  disabled_orphan_lifelong: {
+    en: "Ordinance No. 1/1898, S.29A (inserted by Act No. 44/1981); Act No. 24/1983, S.7 — lifelong pension for permanently disabled orphans",
+    si: 'ආඥාපනත 01/1898, ධ.29A (44/1981 ින් ඇතුළත් කෙරිණ); පනත 24/1983, ධ.7 — ස්ථිර ආබාධිත අනත්දරුවන් සඳහා ජීවිතකාල විශ්‍රාමය',
+    ta: 'அவசரச் சட்டம் 01/1898, பிரிவு 29A (சட்டம் 44/1981 மூலம் சேர்க்கப்பட்டது); சட்டம் 24/1983, பிரிவு 7 — நிரந்தர ஊனமுற்ற அனாதைகளுக்கு ஆயுள் ஓய்வூதியம்'
+  },
+  disabled_orphan_forces: {
+    en: "Ordinance No. 1/1898, S.29A; Extraordinary Gazette No. 1719/3 of 15 Aug 2011, Reg. 5",
+    si: 'ආඥාපනත 01/1898, ධ.29A; 2011.08.15 දිනැති අතිවිශේෂ ගැසට් 1719/3, රෙගු. 5',
+    ta: 'அவசரச் சட்டம் 01/1898, பிரிவு 29A; 15 ஆகஸ்ட் 2011 அசாதாரண வர்த்தமானி எண் 1719/3, விதி 5'
+  },
+  disabled_orphan_ineligible: {
+    en: "Extraordinary Gazette No. 1719/3 of 15 Aug 2011, Reg. 5 — disabled orphan ineligible if imprisoned, residing abroad, or engaged in anti-social conduct",
+    si: '2011.08.15 දිනැති අතිවිශේෂ ගැසට් 1719/3, රෙගු. 5 — සිරගත, විදේශගත, හෝ අසාමාජික ක්‍රියාවල නිරත නම් ආබාධිත අනත්දරු විශ්‍රාමය අහෝසි',
+    ta: '15 ஆகஸ்ட் 2011 அசாதாரண வர்த்தமானி எண் 1719/3, விதி 5 — சிறையில் அடைக்கப்பட்டால், வெளிநாட்டில் வசித்தால் அல்லது சமூக விரோத நடவடிக்கைகளில் ஈடுபட்டால் ஊனமுற்ற அனாதை தகுதியிழப்பு'
+  },
+  missing_person_waiting: {
+    en: "W&O Pension Fund Ordinance No. 1/1898 — waiting period: 4 months (pensioner) / 12 months (in-service) from reference date",
+    si: 'ආඥාපනත 01/1898 — රැඳීමේ කාලය: මාස 4 (විශ්‍රාමික) / මාස 12 (සේවයේ) යොමු දිනෙන්',
+    ta: 'அவசரச் சட்டம் 01/1898 — காத்திருப்பு காலம்: 4 மாதம் (ஓய்வுபெற்றவர்) / 12 மாதம் (சேவையில் உள்ளவர்) குறிப்பு தேதியிலிருந்து'
+  }
+};
+
+// Returns the citation string for the current UI language
+const getLegalRef = (key, i18nLang) => {
+  const langMap = { en: 'en', si: 'si', ta: 'ta' };
+  const lang = langMap[i18nLang] || 'en';
+  return LEGAL_REFS[key]?.[lang] || LEGAL_REFS[key]?.en || '';
+};
+
+
 const validateSLNIC = (nic, dobStr, gender) => {
   if (!nic || !dobStr || !gender) return { valid: false, error: "Ensure NIC, DOB, and Gender are filled to validate." };
   const oldRegex = /^[0-9]{9}[vVxX]$/;
@@ -41,6 +211,21 @@ const FormErrorBanner = ({ error }) => {
         <p className="text-sm opacity-90 font-medium">{error}</p>
       </div>
     </div>
+  );
+};
+
+
+// Legal Citation Badge Component
+const LegalBadge = ({ refKey, lang, className = '' }) => {
+  const ref = LEGAL_REFS[refKey];
+  if (!ref) return null;
+  const langMap = { en: 'en', si: 'si', ta: 'ta' };
+  const l = langMap[lang] || 'en';
+  const citation = ref[l] || ref.en;
+  return (
+    <span className={`inline-flex items-center gap-1 mt-1 px-2 py-0.5 bg-slate-100 border border-slate-300 text-slate-600 text-[10px] font-semibold rounded ${className}`}>
+      ⚖ {citation}
+    </span>
   );
 };
 
@@ -393,9 +578,11 @@ function App() {
 
         if (isEligibleNormal) {
           eligibilityText = 'Eligible Orphan (Under 26, Unemployed)';
+          eligibilityText += ' [REF:orphan_age_26_unemployed]';
           if (child.is_disabled && child.dis_before_26 && child.health_307 && child.med_board && child.med_board_date) {
             isEligibleDisabled = true;
             eligibilityText = 'Eligible Orphan (Under 26 + Valid Main Medical Board Cert)';
+            eligibilityText += ' [REF:disabled_orphan_lifelong]';
           }
         } else if (child.is_disabled && child.dis_before_26 && child.health_307 && child.med_board && child.med_board_date) {
           // Lifetime Activation / Deferral logic
@@ -413,9 +600,11 @@ function App() {
             // Deferred — include in list so card shows, but NOT as an active pensioner
             isDeferred = true;
             eligibilityText = 'Disabled Pension Deferred (Active primary spouse maintains care capability)';
+            eligibilityText += ' [REF:disabled_orphan_lifelong]';
           } else {
             isEligibleDisabled = true;
             eligibilityText = 'Lifetime Disabled Pension Activated (Valid Medical Board Cert + Priority Care Nullified)';
+            eligibilityText += ' [REF:disabled_orphan_lifelong]';
           }
         }
 
@@ -617,7 +806,7 @@ function App() {
       if (!data.isPensioner && !data.isMissingPerson && data.dod && data.dob) {
         const ageAtDeath = computeAgeAtDate(data.dob, data.dod);
         if (ageAtDeath !== '' && ageAtDeath > 65) {
-          handleRejection(t('err_statutory_65'));
+          handleRejection([t('err_statutory_65'), '⚖ ' + getLegalRef('age_65_in_service', i18n.language)]);
           return;
         }
       }
@@ -633,10 +822,10 @@ function App() {
         const diffMonths = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 30));
         // Pensioner: 4 months minimum; In-service (before retirement): 12 months minimum
         if (data.isPensioner && diffMonths < 4) {
-          handleRejection(t('err_missing_retired_4m'));
+          handleRejection([t('err_missing_retired_4m'), '⚖ ' + getLegalRef('missing_person_waiting', i18n.language)]);
           return;
         } else if (!data.isPensioner && diffMonths < 12) {
-          handleRejection(t('err_missing_active_12m'));
+          handleRejection([t('err_missing_active_12m'), '⚖ ' + getLegalRef('missing_person_waiting', i18n.language)]);
           return;
         }
       }
@@ -695,6 +884,7 @@ function App() {
                   </span>
                 )}
                 <div className="text-xs text-amber font-bold mt-1">{t('msg_waiting_period_validated')}</div>
+                <LegalBadge refKey="missing_person_waiting" lang={i18n.language} />
                 {/* Location of disappearance */}
                 <div className="mt-3 p-3 bg-surface-alt border border-subtle rounded animate-fade-in">
                   <label className="label font-bold mb-2">{t('lbl_missing_location')}</label>
@@ -768,7 +958,8 @@ function App() {
             <div>
               <label className={`label mb-2 ${formErrors.svcCategory ? 'text-error font-bold' : 'text-primary'}`}>{t('lbl_service_category')} {formErrors.svcCategory && <span className="text-xs">— {formErrors.svcCategory}</span>}</label>
               <div className={`flex gap-4 p-2 rounded ${formErrors.svcCategory ? 'border-[2px] border-error bg-red-50' : ''}`}>
-                <label className="cursor-pointer"><input type="radio" checked={data.serviceCategory === 'Regular Force'} onChange={() => { updateData('serviceCategory', 'Regular Force'); setFormErrors(p => ({ ...p, svcCategory: null })); }} /> {t('opt_regular_force')}</label>
+                <LegalBadge refKey={data.gender === 'Female' ? 'forces_female_regular' : 'forces_male_regular'} lang={i18n.language} />
+              <label className="cursor-pointer"><input type="radio" checked={data.serviceCategory === 'Regular Force'} onChange={() => { updateData('serviceCategory', 'Regular Force'); setFormErrors(p => ({ ...p, svcCategory: null })); }} /> {t('opt_regular_force')}</label>
                 <label className="cursor-pointer"><input type="radio" checked={data.serviceCategory === 'Volunteer Force'} onChange={() => { updateData('serviceCategory', 'Volunteer Force'); setFormErrors(p => ({ ...p, svcCategory: null })); }} /> {t('opt_volunteer_force')}</label>
               </div>
               <div className="mt-4">
@@ -792,6 +983,7 @@ function App() {
             {data.dob && data.doa && !formErrors.doa && (
               <span className="inline-block mt-1 px-2 py-0.5 bg-primary text-white text-xs font-bold rounded">{t('lbl_age_at_appointment')}: {computeFullAge(data.dob, data.doa)}</span>
             )}
+            <LegalBadge refKey={data.serviceSector === 'Forces' ? (data.gender === 'Female' ? 'forces_female_regular' : 'forces_male_regular') : (data.gender === 'Female' && data.doa >= '1983-08-01' ? 'female_civil_post1983' : data.gender === 'Male' ? 'male_civil_mandatory' : 'female_civil_pre1983_opt')} lang={i18n.language} />
           </div>
           <div className="form-row"><label className="label">{t('lbl_is_45')}</label><input type="text" className="form-input font-bold text-primary bg-surface-alt" disabled value={is45 ? t('msg_yes') : t('msg_no')} /></div>
         </div>
@@ -855,7 +1047,7 @@ function App() {
                 <div className="form-row">
                   <label className={`label ${formErrors.femaleConsent ? 'text-error font-bold' : ''}`}>{t('lbl_consent_wop')} {formErrors.femaleConsent && <span className="text-xs">— {formErrors.femaleConsent}</span>}</label>
                   <select className={`form-input ${formErrors.femaleConsent ? 'border-[2px] border-error text-error' : ''}`} value={data.femaleConsent} onChange={e => {
-                    if (e.target.value === 'No + Reluctant') handleRejection(t('err_female_reluctant'));
+                    if (e.target.value === 'No + Reluctant') handleRejection([t('err_female_reluctant'), '⚖ ' + getLegalRef('female_civil_pre1983_ineligible', i18n.language)]);
                     updateData('femaleConsent', e.target.value);
                     setFormErrors(p => ({ ...p, femaleConsent: null }));
                   }}>
@@ -865,6 +1057,7 @@ function App() {
                     <option value="Yes Evidence">{t('opt_yes_evidence')}</option>
                     <option value="No + Reluctant">{t('opt_no_reluctant')}</option>
                   </select>
+                  <LegalBadge refKey="female_civil_pre1983_opt" lang={i18n.language} />
                 </div>
               </div>
             )}
@@ -884,13 +1077,13 @@ function App() {
             // Military consent date validation
             if (data.serviceSector === 'Forces' && data.serviceCategory === 'Regular Force' && data.doa <= '1968-09-30') {
               if (!data.militaryConsentDate) errsA.militaryConsentDate = t('err_military_consent_missing');
-              else if (data.militaryConsentDate > '2006-06-30') { setFormErrors(errsA); handleRejection(t('err_military_consent_late_regular')); return; }
+              else if (data.militaryConsentDate > '2006-06-30') { setFormErrors(errsA); handleRejection([t('err_military_consent_late_regular'), '⚖ ' + getLegalRef('forces_regular_consent_late', i18n.language)]); return; }
             }
             if (data.serviceSector === 'Forces' && data.serviceCategory === 'Volunteer Force') {
               const cutoff = data.gender === 'Male' ? '1981-09-01' : '1983-08-01';
               if (data.doa <= cutoff) {
                 if (!data.militaryConsentDate) errsA.militaryConsentDate = t('err_military_consent_missing');
-                else if (data.militaryConsentDate > '2012-12-31') { setFormErrors(errsA); handleRejection(t('err_military_consent_late_volunteer')); return; }
+                else if (data.militaryConsentDate > '2012-12-31') { setFormErrors(errsA); handleRejection([t('err_military_consent_late_volunteer'), '⚖ ' + getLegalRef('forces_volunteer_consent_late', i18n.language)]); return; }
               }
             }
             // Under-18 check: run before field errors so it can also set field error
@@ -901,7 +1094,7 @@ function App() {
             if (Object.keys(errsA).length > 0) { setFormErrors(prev => ({ ...prev, ...errsA, global: t('err_global_format') })); return; }
             if (is45 && !data.cabinetDate) { handleRejection(t('err_no_cabinet_approval')); return; }
             if (data.isPermanent === false && !(data.diedDueToTerrorism && !data.isPensioner) && !(data.serviceSector === 'Forces' && data.isPensioner && data.retiredDueToTerrorism)) {
-              handleRejection(t('err_not_permanent')); return;
+              handleRejection([t('err_not_permanent'), '⚖ ' + getLegalRef('non_pensionable_ineligible', i18n.language)]); return;
             }
             setFormErrors({});
             setCheckerStep(2);
@@ -1076,7 +1269,7 @@ function App() {
           if (!data.isPensioner && data.endedWithLossOfPension && data.lossOfPensionReason === 'Other') {
             if (data.doa >= '1981-07-02') {
               if (data.reckonableYears < 10) {
-                handleRejection("Statutory Application Voided: Contributor service terminated with loss of pension and did not complete the mandatory minimum 10 years of reckonable service.");
+                handleRejection(["Statutory Application Voided: Contributor service terminated with loss of pension and did not complete the mandatory minimum 10 years of reckonable service.", '⚖ ' + getLegalRef('under10yrs_no_pension', i18n.language)]);
                 return;
               }
             }
@@ -1708,7 +1901,7 @@ function App() {
           const conIdx = data.app_contributor_marriage_index || 0;
           const conMar = data.applicantMarriages[conIdx];
           if (conMar && conMar.s_term === 'Legally Divorced') {
-            handleRejection(t('err_divorced_from_contributor')); return;
+            handleRejection([t('err_divorced_from_contributor'), '⚖ ' + getLegalRef('post_retirement_marriage', i18n.language)]); return;
           }
           if (data.applicantMarriages.length - 1 > conIdx) {
             updateData('a_remarried', true);
@@ -1911,6 +2104,8 @@ function App() {
 
       // Should the spouse row appear in the beneficiary table?
       const showSpouseInTable = !spouseLostPrimary || (activeSpouseRemarried && !hasAnyOrphans);
+      // Remarriage legal ref key depends on contributor gender
+      const remarriageLegalRef = data.gender === 'Female' ? 'remarriage_50pct_male' : 'remarriage_50pct_female';
       // What share does the spouse get?
       const spouseShare = (() => {
         if (activeSpouseDemised) return 0; // deceased gets nothing
@@ -2357,7 +2552,10 @@ function App() {
                 <h4 style={{ fontWeight: 700, marginBottom: '0.5rem', color: '#0284c7', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.25rem' }}>{t('lbl_marriage_idx')}{i + 1}</h4>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <tbody>
-                    <tr><td style={{ padding: '0.3rem', fontWeight: 600, width: '40%', color: '#475569' }}>{t('lbl_date_of_marriage')}</td><td style={{ padding: '0.3rem' }}>{formatDate(m.date) || t('msg_na')}{data.dob && m.date ? <span style={{ marginLeft: '0.5rem', background: '#1e3a5f', color: '#fff', fontSize: '0.65rem', fontWeight: 700, padding: '1px 5px', borderRadius: '4px' }}>{t('lbl_age_at_marriage')}: {computeFullAge(data.dob, m.date)}</span> : ''}</td></tr>
+                    <tr><td style={{ padding: '0.3rem', fontWeight: 600, width: '40%', color: '#475569' }}>{t('lbl_date_of_marriage')}</td><td style={{ padding: '0.3rem' }}>
+                      {formatDate(m.date) || t('msg_na')}{data.dob && m.date ? <span style={{ marginLeft: '0.5rem', background: '#1e3a5f', color: '#fff', fontSize: '0.65rem', fontWeight: 700, padding: '1px 5px', borderRadius: '4px' }}>{t('lbl_age_at_marriage')}: {computeFullAge(data.dob, m.date)}</span> : ''}
+                      <div style={{ fontSize: '0.6rem', color: '#475569', marginTop: '1px' }}>⚖ {getLegalRef(data.serviceSector === 'Forces' ? (data.gender === 'Female' ? 'marriage_1yr_female_forces' : 'marriage_1yr_male_forces') : (data.gender === 'Female' ? 'marriage_1yr_female_civil' : 'marriage_1yr_male_civil'), i18n.language)}</div>
+                    </td></tr>
                     <tr style={{ background: '#f8fafc' }}><td style={{ padding: '0.3rem', fontWeight: 600, color: '#475569' }}>{t('lbl_spouse_name')}</td><td style={{ padding: '0.3rem' }}>{m.s_name || t('msg_na')}</td></tr>
                     <tr><td style={{ padding: '0.3rem', fontWeight: 600, color: '#475569' }}>{t('lbl_spouse_nic')}</td><td style={{ padding: '0.3rem' }}>{m.s_nic || t('msg_na')}</td></tr>
                     <tr style={{ background: '#f8fafc' }}><td style={{ padding: '0.3rem', fontWeight: 600, color: '#475569' }}>{t('lbl_spouse_alive')}</td><td style={{ padding: '0.3rem' }}>{m.s_alive === true ? t('opt_yes') : m.s_alive === false ? t('msg_no') : t('msg_na')}</td></tr>
