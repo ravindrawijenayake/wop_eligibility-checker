@@ -905,14 +905,26 @@ function App() {
         <div className="tag">{t('part1a_title')}</div>
         {formErrors.global && <div className="p-3 bg-red-100 text-error border-[2px] border-error mb-4 font-bold rounded animate-fade-in">{formErrors.global}</div>}
 
-        <div className="flex gap-4 mb-6 pt-4 border-t border-subtle items-center">
-          <label className="label mb-0">{t('lbl_deceased_status')}</label>
-          <label className="flex gap-2"><input type="radio" checked={data.isPensioner} onChange={() => updateData('isPensioner', true)} /> {t('opt_pensioner')}</label>
-          <label className="flex gap-2"><input type="radio" checked={!data.isPensioner} onChange={() => updateData('isPensioner', false)} /> {t('opt_before_retirement')}</label>
+        <div className="mb-6 pt-4 border-t border-subtle">
+          <label className="label">{t('lbl_deceased_status')}</label>
+          <div className="flex flex-wrap items-center gap-6 mt-2">
+            <div className="pill-radio-group">
+              <label className={`pill-radio-label ${data.isPensioner ? 'selected' : ''}`}>
+                <input type="radio" checked={data.isPensioner} onChange={() => updateData('isPensioner', true)} />
+                {t('opt_pensioner')}
+              </label>
+              <label className={`pill-radio-label ${!data.isPensioner ? 'selected' : ''}`}>
+                <input type="radio" checked={!data.isPensioner} onChange={() => updateData('isPensioner', false)} />
+                {t('opt_before_retirement')}
+              </label>
+            </div>
 
-          <div className="ml-8 border-l border-subtle pl-6 flex items-center gap-2">
-            <label className="label mb-0 text-amber font-bold">{t('lbl_is_missing')}</label>
-            <input type="checkbox" checked={data.isMissingPerson} onChange={e => updateData('isMissingPerson', e.target.checked)} className="cursor-pointer min-w-[16px] min-h-[16px]" />
+            <div className="border-l border-slate-300 pl-6 h-10"></div>
+            
+            <label className={`modern-checkbox ${data.isMissingPerson ? 'border-amber bg-amber-50' : ''}`}>
+              <input type="checkbox" checked={data.isMissingPerson} onChange={e => updateData('isMissingPerson', e.target.checked)} />
+              <span className="font-bold text-amber-700">{t('lbl_is_missing')}</span>
+            </label>
           </div>
         </div>
 
@@ -1017,19 +1029,33 @@ function App() {
         <div className="tag">{t('section_a_title')}</div>
         {formErrors.global && <div className="p-3 bg-red-100 text-error border-[2px] border-error mb-4 font-bold rounded animate-fade-in">{formErrors.global}</div>}
 
-        <div className="mb-6 p-4 bg-surface-alt border border-subtle rounded">
-          <label className="label mb-2">{t('lbl_service_sector')}</label>
-          <div className="flex gap-4 mb-4">
-            <label className="cursor-pointer"><input type="radio" checked={data.serviceSector === 'Civil'} onChange={() => { updateData('serviceSector', 'Civil'); updateData('serviceCategory', ''); }} /> {t('opt_civil')}</label>
-            <label className="cursor-pointer"><input type="radio" checked={data.serviceSector === 'Forces'} onChange={() => updateData('serviceSector', 'Forces')} /> {t('opt_forces')}</label>
+        <div className="mb-6 p-6 bg-slate-50 border border-slate-200 rounded-2xl shadow-sm">
+          <label className="label text-lg mb-3">{t('lbl_service_sector')}</label>
+          <div className="pill-radio-group mb-4">
+            <label className={`pill-radio-label ${data.serviceSector === 'Civil' ? 'selected' : ''}`}>
+              <input type="radio" checked={data.serviceSector === 'Civil'} onChange={() => { updateData('serviceSector', 'Civil'); updateData('serviceCategory', ''); }} />
+              {t('opt_civil')}
+            </label>
+            <label className={`pill-radio-label ${data.serviceSector === 'Forces' ? 'selected' : ''}`}>
+              <input type="radio" checked={data.serviceSector === 'Forces'} onChange={() => updateData('serviceSector', 'Forces')} />
+              {t('opt_forces')}
+            </label>
           </div>
           {data.serviceSector === 'Forces' && (
-            <div>
-              <label className={`label mb-2 ${formErrors.svcCategory ? 'text-error font-bold' : 'text-primary'}`}>{t('lbl_service_category')} {formErrors.svcCategory && <span className="text-xs">— {formErrors.svcCategory}</span>}</label>
-              <div className={`flex gap-4 p-2 rounded ${formErrors.svcCategory ? 'border-[2px] border-error bg-red-50' : ''}`}>
+            <div className="mt-6 pt-4 border-t border-slate-200">
+              <label className={`label mb-3 ${formErrors.svcCategory ? 'text-error font-bold' : 'text-primary'}`}>{t('lbl_service_category')} {formErrors.svcCategory && <span className="text-xs">— {formErrors.svcCategory}</span>}</label>
+              <div className={`flex flex-col gap-3 p-4 rounded-xl bg-white border ${formErrors.svcCategory ? 'border-error' : 'border-slate-200'}`}>
                 <LegalBadge refKey={data.gender === 'Female' ? 'forces_female_regular' : 'forces_male_regular'} lang={i18n.language} />
-              <label className="cursor-pointer"><input type="radio" checked={data.serviceCategory === 'Regular Force'} onChange={() => { updateData('serviceCategory', 'Regular Force'); setFormErrors(p => ({ ...p, svcCategory: null })); }} /> {t('opt_regular_force')}</label>
-                <label className="cursor-pointer"><input type="radio" checked={data.serviceCategory === 'Volunteer Force'} onChange={() => { updateData('serviceCategory', 'Volunteer Force'); setFormErrors(p => ({ ...p, svcCategory: null })); }} /> {t('opt_volunteer_force')}</label>
+                <div className="pill-radio-group mt-2">
+                  <label className={`pill-radio-label ${data.serviceCategory === 'Regular Force' ? 'selected' : ''}`}>
+                    <input type="radio" checked={data.serviceCategory === 'Regular Force'} onChange={() => { updateData('serviceCategory', 'Regular Force'); setFormErrors(p => ({ ...p, svcCategory: null })); }} />
+                    {t('opt_regular_force')}
+                  </label>
+                  <label className={`pill-radio-label ${data.serviceCategory === 'Volunteer Force' ? 'selected' : ''}`}>
+                    <input type="radio" checked={data.serviceCategory === 'Volunteer Force'} onChange={() => { updateData('serviceCategory', 'Volunteer Force'); setFormErrors(p => ({ ...p, svcCategory: null })); }} />
+                    {t('opt_volunteer_force')}
+                  </label>
+                </div>
               </div>
               <div className="mt-4">
                 {((data.serviceCategory === 'Regular Force' && data.doa && data.doa <= '1968-09-30') || 
@@ -1179,11 +1205,17 @@ function App() {
       {formErrors.global && <div className="p-3 bg-red-100 text-error border-[2px] border-error mb-4 font-bold rounded animate-fade-in">{formErrors.global}</div>}
       <h2 className="text-2xl font-bold mb-4">{t('lbl_reg_term')}</h2>
 
-      <div className="p-4 bg-surface-alt border border-subtle rounded mb-6">
-        <label className="label text-primary font-bold">{t('lbl_is_wop_reg')}</label>
-        <div className="flex gap-4 items-center">
-          <label><input type="radio" checked={data.registrationValid} onChange={() => { updateData('registrationValid', true); updateData('isEligible', true); }} /> {t('opt_yes')}</label>
-          <label><input type="radio" checked={!data.registrationValid} onChange={() => handleRejection(t('err_not_reg_wop'))} /> {t('msg_no')}</label>
+      <div className="p-6 bg-slate-50 border border-slate-200 rounded-2xl shadow-sm mb-6">
+        <label className="label text-lg mb-3 text-primary">{t('lbl_is_wop_reg')}</label>
+        <div className="pill-radio-group mb-2">
+          <label className={`pill-radio-label ${data.registrationValid ? 'selected' : ''}`}>
+            <input type="radio" checked={data.registrationValid} onChange={() => { updateData('registrationValid', true); updateData('isEligible', true); }} />
+            {t('opt_yes')}
+          </label>
+          <label className={`pill-radio-label ${!data.registrationValid ? 'selected' : ''}`}>
+            <input type="radio" checked={!data.registrationValid} onChange={() => handleRejection(t('err_not_reg_wop'))} />
+            {t('msg_no')}
+          </label>
         </div>
         {data.registrationValid && (
           <div className="mt-3 form-row max-w-sm">
@@ -1206,11 +1238,17 @@ function App() {
         )}
       </div>
 
-      <div className="mb-6 pb-4 border-b border-subtle">
-        <label className="label font-bold text-primary mb-2">{t('lbl_contributions_recovered')}</label>
-        <div className="flex gap-4 items-center">
-          <label><input type="radio" checked={data.contributionRecovered} onChange={() => { updateData('contributionRecovered', true); updateData('isEligible', true); }} /> {t('opt_yes')}</label>
-          <label><input type="radio" checked={!data.contributionRecovered} onChange={() => handleRejection(t('err_contributions_unrecovered'))} /> {t('msg_no')}</label>
+      <div className="mb-6 p-6 bg-slate-50 border border-slate-200 rounded-2xl shadow-sm">
+        <label className="label text-lg mb-3 text-primary">{t('lbl_contributions_recovered')}</label>
+        <div className="pill-radio-group mb-2">
+          <label className={`pill-radio-label ${data.contributionRecovered ? 'selected' : ''}`}>
+            <input type="radio" checked={data.contributionRecovered} onChange={() => { updateData('contributionRecovered', true); updateData('isEligible', true); }} />
+            {t('opt_yes')}
+          </label>
+          <label className={`pill-radio-label ${!data.contributionRecovered ? 'selected' : ''}`}>
+            <input type="radio" checked={!data.contributionRecovered} onChange={() => handleRejection(t('err_contributions_unrecovered'))} />
+            {t('msg_no')}
+          </label>
         </div>
       </div>
 
@@ -2113,25 +2151,33 @@ function App() {
       // Structural Rejection Report Generation
       if (!data.isEligible && data.rejectionReasons.length > 0) {
         return (
-          <div className="animate-fade-in text-center py-8 px-6 bg-surface-alt border border-error rounded-xl shadow-lg">
-            <XCircle size={64} className="text-error mx-auto mb-4" />
-            <h2 className="text-3xl font-bold text-error mb-2">{t('section_f_ineligibility_title')}</h2>
-            <p className="text-muted text-lg mb-8">{t('msg_ineligibility_desc')}</p>
-
-            <div className="bg-[#ffffff] p-6 rounded border border-error text-left max-w-lg mx-auto">
-              <h3 className="font-bold text-lg border-b border-subtle pb-2 mb-4 text-error">{t('lbl_failure_identifiers')}</h3>
-              <ul className="list-disc pl-5 space-y-2 mt-4 text-[#991b1b] font-bold">
-                {data.rejectionReasons.map((r, idx) => <li key={idx}>{r}</li>)}
-              </ul>
-              <div className="mt-6 pt-4 border-t border-subtle text-sm text-muted">
-                <p>{t('lbl_contributor')}: {data.name || t('msg_not_captured')}</p>
-                <p>{t('lbl_nic')}: {data.nic || t('msg_not_captured')}</p>
+          <div className="animate-fade-in result-card max-w-2xl mx-auto">
+            <div className="result-header ineligible flex flex-col items-center">
+              <XCircle size={72} className="text-white mb-4 drop-shadow-md" />
+              <h2 className="text-3xl font-bold text-white tracking-tight" style={{fontFamily: 'Outfit, sans-serif'}}>{t('section_f_ineligibility_title')}</h2>
+              <p className="text-red-100 text-lg mt-2 font-medium">{t('msg_ineligibility_desc')}</p>
+            </div>
+            <div className="result-body">
+              <div className="bg-white p-6 rounded-xl border border-red-200 shadow-sm text-left">
+                <h3 className="font-bold text-lg border-b border-red-100 pb-3 mb-4 text-error flex items-center gap-2">
+                  <AlertTriangle size={20} /> {t('lbl_failure_identifiers')}
+                </h3>
+                <ul className="list-disc pl-5 space-y-3 mt-4 text-red-700 font-medium">
+                  {data.rejectionReasons.map((r, idx) => <li key={idx}>{r}</li>)}
+                </ul>
+                <div className="mt-6 pt-4 border-t border-slate-200 text-sm">
+                  <div className="detail-item !py-1 !border-none"><span className="detail-label">{t('lbl_contributor')}</span> <span className="detail-value">{data.name || t('msg_not_captured')}</span></div>
+                  <div className="detail-item !py-1 !border-none"><span className="detail-label">{t('lbl_nic')}</span> <span className="detail-value">{data.nic || t('msg_not_captured')}</span></div>
+                </div>
+              </div>
+              <p className="mt-6 text-sm text-center text-slate-500 font-semibold">{t('msg_rejection_trigger_info')}</p>
+              
+              <div className="flex flex-wrap justify-center gap-4 mt-8">
+                <button className="btn bg-white text-slate-700 border border-slate-300 shadow-sm hover:bg-slate-50" onClick={() => { updateData('isEligible', true); setCheckerStep(0); }}>{t('btn_back_correct_inputs')}</button>
+                <button className="btn bg-red-600 text-white shadow-md hover:bg-red-700" onClick={() => resetApp()}>{t('btn_acknowledge_exit')}</button>
+                <button className="btn bg-slate-800 text-white shadow-md hover:bg-slate-900" onClick={() => handlePrint('rejection')}><Printer size={18} /> {t('btn_print_rejection_report')}</button>
               </div>
             </div>
-            <p className="mt-6 text-sm text-muted font-bold">{t('msg_rejection_trigger_info')}</p>
-            <button className="btn mt-4 bg-surface-alt text-primary border-primary hover:bg-gray-100 mr-4" onClick={() => { updateData('isEligible', true); setCheckerStep(0); }}>{t('btn_back_correct_inputs')}</button>
-            <button className="btn mt-8" style={{ background: 'var(--error)' }} onClick={() => resetApp()}>{t('btn_acknowledge_exit')}</button>
-            <button className="btn mt-8 ml-4" style={{ background: '#334155', color: '#fff' }} onClick={() => handlePrint('rejection')}>{t('btn_print_rejection_report')}</button>
           </div>
         );
       }
@@ -2282,14 +2328,14 @@ function App() {
 
       return (
         <>
-          <div className={`animate-fade-in py-8 px-6 bg-surface-alt border border-success rounded-xl shadow-lg ${printMode && printMode !== 'output' ? 'print-hide' : ''}`}>
-            <div className={`text-center mb-6 ${printMode === 'output' ? 'print-hide' : ''}`}>
-            <CheckCircle size={64} className="text-success mx-auto mb-4" />
-            <h2 className="text-3xl font-bold text-success mb-2">{t('section_f_eligibility_title').replace('{wopTitle}', wopTitle)}</h2>
-            <p className="text-muted text-lg">{t('msg_validations_completed')}</p>
-          </div>
+          <div className={`animate-fade-in result-card mx-auto max-w-4xl ${printMode && printMode !== 'output' ? 'print-hide' : ''}`}>
+            <div className={`result-header eligible flex flex-col items-center ${printMode === 'output' ? 'print-hide' : ''}`}>
+              <CheckCircle size={72} className="text-white mb-4 drop-shadow-md" />
+              <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-2 tracking-tight text-center" style={{fontFamily: 'Outfit, sans-serif'}}>{t('section_f_eligibility_title').replace('{wopTitle}', wopTitle)}</h2>
+              <p className="text-green-50 text-lg font-medium">{t('msg_validations_completed')}</p>
+            </div>
 
-          <div className="bg-[#ffffff] p-6 rounded border border-subtle mx-auto w-full">
+            <div className="result-body p-6 w-full mx-auto">
 
             {deathGratuityWarning && (
               <div className="mb-6 p-4 border border-blue-500 bg-blue-50 rounded animate-fade-in shadow-sm print-hide">
@@ -2955,8 +3001,13 @@ function App() {
           <div className="w-full mt-2"><AuthView /></div>
         ) : (
           <div className="wizard-card shadow-lg">
-            <div className="step-indicator print-hide">
-              {[1, 2, 3, 4, 5, 6, 7].map(i => <div key={i} className={`step-dot ${checkerStep >= i - 1 ? 'active' : ''}`}></div>)}
+            <div className="stepper-container print-hide">
+              <div className="stepper-progress" style={{ width: `${(checkerStep / 6) * 100}%` }}></div>
+              {[1, 2, 3, 4, 5, 6, 7].map(i => (
+                <div key={i} className={`stepper-step ${checkerStep === i - 1 ? 'active' : ''} ${checkerStep > i - 1 ? 'completed' : ''}`} title={`Step ${i}`}>
+                  {checkerStep > i - 1 ? <CheckCircle size={20} /> : i}
+                </div>
+              ))}
             </div>
             <FormErrorBanner error={formErrors.global} />
             {checkerRenderer[checkerStep]()}
