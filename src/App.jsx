@@ -728,28 +728,38 @@ function App() {
   };
 
   const AuthView = () => (
-    <div className="w-screen min-h-screen flex flex-col lg:flex-row bg-white overflow-hidden relative z-50">
-      {/* Left Side: Thematic Image */}
-      <div className="hidden lg:flex w-full lg:w-5/12 relative bg-slate-900 overflow-hidden">
-        <img src={bannerImg} alt="WOP Banner" className="absolute inset-0 w-full h-full object-cover opacity-50 scale-105" />
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/70 to-transparent"></div>
-        <div className="relative z-10 p-12 lg:p-16 flex flex-col justify-center h-full text-white">
-          <div className="inline-flex justify-center items-center p-4 bg-white/10 backdrop-blur-md rounded-2xl mb-8 w-max border border-white/20 shadow-xl">
-            <ShieldCheck size={56} className="text-blue-200" />
+    <div className="w-screen min-h-screen flex flex-col lg:flex-row bg-slate-50 overflow-hidden relative z-50">
+      
+      {/* Left Side: Information Above Banner */}
+      <div className="hidden lg:flex w-full lg:w-5/12 flex-col bg-slate-900 border-r border-slate-800 shadow-2xl z-10 relative">
+        <div className="p-10 lg:p-14 flex flex-col justify-start text-white bg-slate-900 z-10 relative">
+          <div className="inline-flex justify-center items-center p-4 bg-white/5 backdrop-blur-md rounded-2xl mb-8 w-max border border-white/10 shadow-lg">
+            <ShieldCheck size={48} className="text-blue-300" />
           </div>
-          <h2 className="text-4xl lg:text-5xl font-black mb-6 tracking-tight leading-tight" style={{fontFamily: 'Outfit, sans-serif'}}>{t('app_title')}</h2>
-          <p className="text-xl text-blue-200 font-bold mb-8 max-w-xl leading-relaxed">{t('app_subtitle')}</p>
-          <div className="w-16 h-1 bg-blue-500 rounded-full mb-8"></div>
+          <h2 className="text-3xl lg:text-4xl font-black mb-4 tracking-tight leading-tight text-white" style={{fontFamily: 'Outfit, sans-serif'}}>
+            {t('app_title')}
+          </h2>
+          <p className="text-xl text-blue-200 font-bold mb-6 max-w-xl leading-relaxed">
+            {t('app_subtitle')}
+          </p>
+          <div className="w-12 h-1 bg-blue-500 rounded-full mb-6"></div>
           <p className="text-base text-slate-300 leading-relaxed font-medium max-w-xl">
             Welcome to the Widows’ and Orphans’ Pensions (W&OP) Eligibility Checker, an intuitive and user-friendly digital platform designed to help public sector employees and their families seamlessly determine their qualification for survivor benefits. By entering a few key details regarding service history and familial status, this tool securely evaluates your information against official regulatory guidelines to provide instant, clear guidance on your status.
           </p>
         </div>
+        
+        {/* Banner Below Text */}
+        <div className="flex-grow relative w-full min-h-[300px] border-t border-slate-800 bg-slate-900">
+           <img src={bannerImg} alt="WOP Banner" className="absolute inset-0 w-full h-full object-cover opacity-80" />
+           <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
+        </div>
       </div>
 
       {/* Right Side: Authentication Panel */}
-      <div className="w-full lg:w-7/12 min-h-screen overflow-y-auto flex flex-col justify-center bg-slate-50 p-6 lg:p-16 shadow-[-20px_0_40px_-10px_rgba(0,0,0,0.1)] relative z-20">
+      <div className="w-full lg:w-7/12 min-h-screen overflow-y-auto flex flex-col justify-center bg-slate-50 p-6 lg:p-16 relative z-20">
         <div className="max-w-xl w-full mx-auto">
-          <div className="mb-10 text-center lg:text-left">
+          
+          <div className="mb-8 text-center lg:text-left">
             <h3 className="text-3xl font-extrabold text-slate-800 mb-2 tracking-tight" style={{fontFamily: 'Outfit, sans-serif'}}>{t('select_role')}</h3>
             <p className="text-slate-500 font-medium">Please select your official capacity to continue.</p>
           </div>
@@ -773,7 +783,10 @@ function App() {
             </div>
           </div>
 
-          <div className="bg-slate-50 p-8 rounded-3xl border border-slate-200">
+          {/* Refined Login Portal Box */}
+          <div className="bg-white p-8 lg:p-10 rounded-2xl border border-slate-200 shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
+            
             {authMode === 'login' && (
               <div className="animate-fade-in">
                 {userRole === 'Public' ? (
@@ -781,10 +794,11 @@ function App() {
                     <h3 className="font-bold text-2xl mb-2 text-slate-800" style={{fontFamily: 'Outfit, sans-serif'}}>General Public Access</h3>
                     <p className="text-sm text-slate-500 font-medium mb-8">No formal authentication is required for basic eligibility checking.</p>
                     
-                    <button className="btn w-full py-4 text-lg shadow-md" onClick={() => setViewState('checker')}>{t('btn_continue')} <ChevronRight size={24}/></button>
+                    <button className="btn w-full py-4 text-lg shadow-md hover:shadow-lg transition-shadow bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setViewState('checker')}>{t('btn_continue')} <ChevronRight size={24}/></button>
                     
-                    <div className="mt-6 p-4 bg-white rounded-xl text-xs text-slate-500 font-medium border border-slate-100 shadow-sm text-left">
-                      <strong>Note:</strong> Formal application submissions still require physical document verification at your relevant Divisional Secretariat or Last Working Place.
+                    <div className="mt-8 p-5 bg-amber-50 rounded-xl text-xs text-amber-800 font-medium border border-amber-200 shadow-sm text-left flex gap-3 items-start">
+                      <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" />
+                      <span><strong>Note:</strong> Formal application submissions still require physical document verification at your relevant Divisional Secretariat or Last Working Place.</span>
                     </div>
                   </div>
                 ) : (
@@ -793,22 +807,22 @@ function App() {
                     
                     <div className="form-row mb-5">
                       <label className="label font-bold text-slate-700 mb-2">Verification ID / Username</label>
-                      <input type="text" className="form-input bg-white border-slate-200 shadow-sm" defaultValue="Admin-Sys" />
+                      <input type="text" className="form-input bg-slate-50 border-slate-300 focus:bg-white transition-colors" defaultValue="Admin-Sys" />
                     </div>
                     
                     <div className="form-row mb-5">
                       <label className="label font-bold text-slate-700 mb-2">Secure Password</label>
-                      <input type="password" className="form-input bg-white border-slate-200 shadow-sm" defaultValue="password" />
+                      <input type="password" className="form-input bg-slate-50 border-slate-300 focus:bg-white transition-colors" defaultValue="password" />
                     </div>
 
-                    <div className="form-row mb-6 mt-2">
+                    <div className="form-row mb-8 mt-2">
                       <label className="label font-bold text-slate-700 mb-2">Institution Verification Hash</label>
-                      <input type="text" className="form-input bg-white border-slate-200 shadow-sm" placeholder="Institution Reg No. / Code" />
+                      <input type="text" className="form-input bg-slate-50 border-slate-300 focus:bg-white transition-colors" placeholder="Institution Reg No. / Code" />
                     </div>
 
-                    <button className="btn w-full py-3 text-lg mt-2 shadow-md" onClick={() => setViewState('checker')}>{t('btn_continue')} <ChevronRight size={20}/></button>
+                    <button className="btn w-full py-3 text-lg mt-2 shadow-md hover:shadow-lg transition-shadow bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setViewState('checker')}>{t('btn_continue')} <ChevronRight size={20}/></button>
                     
-                    <div className="flex justify-between mt-6 pt-4 border-t border-slate-200 text-sm font-bold text-primary">
+                    <div className="flex justify-between mt-8 pt-6 border-t border-slate-100 text-sm font-bold text-blue-600">
                       <span className="cursor-pointer hover:text-indigo-800 transition-colors" onClick={() => setAuthMode('register')}>Request Access</span>
                       <span className="cursor-pointer hover:text-indigo-800 transition-colors" onClick={() => setAuthMode('forgot')}>Forgot Credentials?</span>
                     </div>
@@ -821,9 +835,9 @@ function App() {
               <div className="animate-fade-in text-center lg:text-left">
                 <h3 className="font-bold text-2xl mb-2 text-slate-800" style={{fontFamily: 'Outfit, sans-serif'}}>Request Access</h3>
                 <p className="text-sm text-slate-500 font-medium mb-6">Official government agency request form. Validation takes 2-3 business days.</p>
-                <div className="form-row mb-6 text-left"><label className="label font-bold mb-2">Official Email</label><input type="email" className="form-input bg-white border-slate-200 shadow-sm" placeholder="name@gov.lk" /></div>
-                <button className="btn w-full py-3 shadow-md" onClick={() => setAuthMode('login')}>Submit Request</button>
-                <div className="text-center mt-6 pt-4 border-t border-slate-200 text-sm font-bold text-slate-500 cursor-pointer hover:text-indigo-800 transition-colors" onClick={() => setAuthMode('login')}>Back to Login</div>
+                <div className="form-row mb-6 text-left"><label className="label font-bold mb-2 text-slate-700">Official Email</label><input type="email" className="form-input bg-slate-50 border-slate-300 focus:bg-white transition-colors" placeholder="name@gov.lk" /></div>
+                <button className="btn w-full py-3 shadow-md bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setAuthMode('login')}>Submit Request</button>
+                <div className="text-center mt-6 pt-6 border-t border-slate-100 text-sm font-bold text-slate-500 cursor-pointer hover:text-indigo-800 transition-colors" onClick={() => setAuthMode('login')}>Back to Login</div>
               </div>
             )}
 
@@ -831,9 +845,9 @@ function App() {
               <div className="animate-fade-in text-center lg:text-left">
                 <h3 className="font-bold text-2xl mb-2 text-slate-800" style={{fontFamily: 'Outfit, sans-serif'}}>Reset Credentials</h3>
                 <p className="text-sm text-slate-500 font-medium mb-6">A secure reset link will be dispatched to your registered institutional email.</p>
-                <div className="form-row mb-6 text-left"><label className="label font-bold mb-2">Verification ID / Official Email</label><input type="text" className="form-input bg-white border-slate-200 shadow-sm" /></div>
-                <button className="btn w-full py-3 shadow-md" onClick={() => setAuthMode('login')}>Dispatch Reset Token</button>
-                <div className="text-center mt-6 pt-4 border-t border-slate-200 text-sm font-bold text-slate-500 cursor-pointer hover:text-indigo-800 transition-colors" onClick={() => setAuthMode('login')}>Back to Login</div>
+                <div className="form-row mb-6 text-left"><label className="label font-bold mb-2 text-slate-700">Verification ID / Official Email</label><input type="text" className="form-input bg-slate-50 border-slate-300 focus:bg-white transition-colors" /></div>
+                <button className="btn w-full py-3 shadow-md bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setAuthMode('login')}>Dispatch Reset Token</button>
+                <div className="text-center mt-6 pt-6 border-t border-slate-100 text-sm font-bold text-slate-500 cursor-pointer hover:text-indigo-800 transition-colors" onClick={() => setAuthMode('login')}>Back to Login</div>
               </div>
             )}
           </div>
