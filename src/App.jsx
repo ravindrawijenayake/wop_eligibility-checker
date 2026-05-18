@@ -2939,7 +2939,7 @@ function App() {
 
   return (
     <div className="app-container">
-      <div className="main-content">
+      <div className={`w-full mx-auto ${viewState === 'auth' ? 'max-w-7xl' : 'max-w-4xl'}`}>
         <div className="flex justify-end p-4 print-hide">
           <select 
             value={i18n.language} 
@@ -2952,7 +2952,7 @@ function App() {
           </select>
         </div>
         {viewState === 'auth' ? (
-          <div className="wizard-card max-w-md mx-auto mt-12"><AuthView /></div>
+          <div className="w-full mt-2"><AuthView /></div>
         ) : (
           <div className="wizard-card shadow-lg">
             <div className="step-indicator print-hide">
