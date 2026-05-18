@@ -730,29 +730,36 @@ function App() {
   const AuthView = () => (
     <div className="w-screen min-h-screen flex flex-col lg:flex-row bg-slate-50 overflow-hidden relative z-50">
       
-      {/* Left Side: Information Above Banner */}
+      {/* Left Side: Thematic Column */}
       <div className="hidden lg:flex w-full lg:w-5/12 flex-col bg-slate-900 border-r border-slate-800 shadow-2xl z-10 relative">
-        <div className="p-10 lg:p-14 flex flex-col justify-start text-white bg-slate-900 z-10 relative">
-          <div className="inline-flex justify-center items-center p-4 bg-white/5 backdrop-blur-md rounded-2xl mb-8 w-max border border-white/10 shadow-lg">
-            <ShieldCheck size={48} className="text-blue-300" />
-          </div>
-          <h2 className="text-3xl lg:text-4xl font-black mb-4 tracking-tight leading-tight text-white" style={{fontFamily: 'Outfit, sans-serif'}}>
+        
+        {/* Title & Subtitle (Beautifully Styled) */}
+        <div className="px-10 lg:px-14 pt-14 pb-10 flex flex-col justify-start bg-slate-900 z-10 relative">
+          <div className="w-16 h-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full mb-6 shadow-[0_0_15px_rgba(59,130,246,0.5)]"></div>
+          
+          <h2 className="text-4xl lg:text-5xl font-black mb-4 tracking-tight leading-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-slate-400" style={{fontFamily: 'Outfit, sans-serif'}}>
             {t('app_title')}
           </h2>
-          <p className="text-xl text-blue-200 font-bold mb-6 max-w-xl leading-relaxed">
+          
+          <p className="text-lg lg:text-xl text-blue-300 font-bold max-w-xl leading-relaxed tracking-wide uppercase" style={{fontFamily: 'Inter, sans-serif'}}>
             {t('app_subtitle')}
-          </p>
-          <div className="w-12 h-1 bg-blue-500 rounded-full mb-6"></div>
-          <p className="text-base text-slate-300 leading-relaxed font-medium max-w-xl">
-            Welcome to the Widows’ and Orphans’ Pensions (W&OP) Eligibility Checker, an intuitive and user-friendly digital platform designed to help public sector employees and their families seamlessly determine their qualification for survivor benefits. By entering a few key details regarding service history and familial status, this tool securely evaluates your information against official regulatory guidelines to provide instant, clear guidance on your status.
           </p>
         </div>
         
-        {/* Banner Below Text */}
-        <div className="flex-grow relative w-full min-h-[300px] border-t border-slate-800 bg-slate-900">
-           <img src={bannerImg} alt="WOP Banner" className="absolute inset-0 w-full h-full object-cover opacity-80" />
+        {/* Banner Image */}
+        <div className="relative w-full h-80 border-y border-slate-800 bg-slate-900 shadow-inner">
+           <img src={bannerImg} alt="WOP Banner" className="absolute inset-0 w-full h-full object-cover opacity-90" />
            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
+           <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-transparent to-transparent"></div>
         </div>
+
+        {/* Description Below Banner */}
+        <div className="p-10 lg:p-14 flex-grow flex flex-col justify-start bg-slate-900">
+          <p className="text-lg text-slate-400 leading-relaxed font-medium max-w-xl text-justify">
+            Welcome to the Widows’ and Orphans’ Pensions (W&OP) Eligibility Checker, an intuitive and user-friendly digital platform designed to help public sector employees and their families seamlessly determine their qualification for survivor benefits. By entering a few key details regarding service history and familial status, this tool securely evaluates your information against official regulatory guidelines to provide instant, clear guidance on your status.
+          </p>
+        </div>
+
       </div>
 
       {/* Right Side: Authentication Panel */}
