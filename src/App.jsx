@@ -727,7 +727,7 @@ function App() {
     return docs;
   };
 
-      const AuthView = () => (
+  const AuthView = () => (
     <div className="animate-fade-in glass-panel p-8 lg:p-12 w-full max-w-7xl mx-auto my-8 lg:my-16" style={{boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'}}>
       <div className="flex flex-col lg:flex-row gap-12 items-center">
         {/* Left Side Description */}
@@ -841,6 +841,1150 @@ function App() {
             </div>
           )}
         </div>
+      </div>
+    </div>
+  );
+
+  const Part1A = () => {
+    const handleNext = () => {
+      let errs = {};
+      if (!data.name) errs.p1name = 'Required';
+      if (!data.nic) errs.p1nic = 'Required';
+      if (!data.dob) errs.p1dob = 'Required';
+      if (!data.isMissingPerson && !data.dod) errs.p1dod = 'Required';
+      if (!data.isMissingPerson && data.dod && !data.deathCertNo) errs.p1deathCert = t('err_death_cert_required');
+      if (data.isMissingPerson && !data.policeComplaintDate) errs.p1police = 'Required';
+      if (data.isMissingPerson && !data.missingLocation) errs.missingLocation = t('err_missing_location_required');
+      if (data.isMissingPerson && data.missingLocation === 'Abroad' && !data.foreignMinistryDate) errs.foreignMinistryDate = t('err_foreign_ministry_date_required');
+      if (data.serviceSector === 'Forces' && !data.officerNumber) errs.p1officerNo = t('err_officer_number_required');
+      if (data.isPensioner && !data.dor) errs.p1dor = t('err_dor_required');
+
+      if (Object.keys(errs).length > 0) {
+        setFormErrors({ ...errs, global: t('err_global_format') });
+        return;
+      }
+
+      const nicCheck = validateSLNIC(data.nic, data.dob, data.gender);
+      if (!nicCheck.valid) { setFormErrors({ ...formErrors, p1nic: nicCheck.error, p1dob: "Format Mismatch", global: t('err_global_nic_format') + nicCheck.error }); return; }
+
+      if (!data.isMissingPerson && data.dod && data.dob && new Date(data.dod) < new Date(data.dob)) { handleRejection([t('err_invalid_lifecycle')]); return; }
+
+      // Statutory 65 Threshold Check for In-Service Demise
+      if (!data.isPensioner && !data.isMissingPerson && data.dod && data.dob) {
+        const ageAtDeath = computeAgeAtDate(data.dob, data.dod);
+        if (ageAtDeath !== '' && ageAtDeath > 65) {
+          handleRejection([t('err_statutory_65'), '⚖ ' + getLegalRef('age_65_in_service', i18n.language)]);
+          return;
+        }
+      }
+
+      if (data.isMissingPerson && data.policeComplaintDate) {
+        // For abroad: use foreignMinistryDate if provided, else policeComplaintDate
+        const refDateStr = (data.missingLocation === 'Abroad' && data.foreignMinistryDate)
+          ? data.foreignMinistryDate
+          : data.policeComplaintDate;
+        const refDate = new Date(refDateStr);
+        const now = new Date();
+        const diffTime = Math.abs(now - refDate);
+        const diffMonths = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 30));
+        // Pensioner: 4 months minimum; In-service (before retirement): 12 months minimum
+        if (data.isPensioner && diffMonths < 4) {
+          handleRejection([t('err_missing_retired_4m'), '⚖ ' + getLegalRef('missing_person_waiting', i18n.language)]);
+          return;
+        } else if (!data.isPensioner && diffMonths < 12) {
+          handleRejection([t('err_missing_active_12m'), '⚖ ' + getLegalRef('missing_person_waiting', i18n.language)]);
+          return;
+        }
+      }
+
+      setFormErrors({}); setCheckerStep(1);
+    };
+
+    return (
+      <div className="animate-fade-in">
+        <div className="tag">{t('part1a_title')}</div>
+        {formErrors.global && <div className="p-3 bg-red-100 text-error border-[2px] border-error mb-4 font-bold rounded animate-fade-in">{formErrors.global}</div>}
+
+        <div className="flex gap-4 mb-6 pt-4 border-t border-subtle items-center">
+          <label className="label mb-0">{t('lbl_deceased_status')}</label>
+          <label className="flex gap-2"><input type="radio" checked={data.isPensioner} onChange={() => updateData('isPensioner', true)} /> {t('opt_pensioner')}</label>
+          <label className="flex gap-2"><input type="radio" checked={!data.isPensioner} onChange={() => updateData('isPensioner', false)} /> {t('opt_before_retirement')}</label>
+
+          <div className="ml-8 border-l border-subtle pl-6 flex items-center gap-2">
+            <label className="label mb-0 text-amber font-bold">{t('lbl_is_missing')}</label>
+            <input type="checkbox" checked={data.isMissingPerson} onChange={e => updateData('isMissingPerson', e.target.checked)} className="cursor-pointer min-w-[16px] min-h-[16px]" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="form-row col-span-2"><label className="label">{t('lbl_name_nic')}</label><input type="text" className={`form-input ${formErrors.p1name ? 'border-[2px] border-error text-error' : ''}`} value={data.name} onChange={e => { updateData('name', e.target.value); setFormErrors(p => ({ ...p, p1name: null })); }} /></div>
+          <div className="form-row">
+            <label className="label">{t('lbl_gender')}</label>
+            <select className="form-input font-bold" value={data.gender} onChange={e => updateData('gender', e.target.value)}><option value="Male">{t('opt_male')}</option><option value="Female">{t('opt_female')}</option></select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="form-row"><label className="label">{t('lbl_dob')}</label><input type="date" min="1900-01-01" className={`form-input ${formErrors.p1dob ? 'border-[2px] border-error text-error' : ''}`} value={data.dob} onChange={e => { updateData('dob', e.target.value); setFormErrors(p => ({ ...p, p1dob: null })); }} />
+            {formErrors.p1dob && <div className="text-error text-xs font-bold mt-1">{formErrors.p1dob}</div>}
+            {data.dob && !formErrors.p1dob && <span className="inline-block mt-1 px-2 py-0.5 bg-primary text-white text-xs font-bold rounded">{t('lbl_age')}: {computeDynamicAge(data.dob)}</span>}
+          </div>
+          <div className="form-row">
+            <label className="label">{t('lbl_nic')}</label>
+            <input type="text" className={`form-input ${formErrors.p1nic ? 'border-[2px] border-error text-error' : ''}`} value={data.nic} onChange={e => { updateData('nic', e.target.value); setFormErrors(p => ({ ...p, p1nic: null })); }} />
+            {formErrors.p1nic && <div className="text-error text-xs font-bold mt-1">{formErrors.p1nic}</div>}
+          </div>
+          <div className="form-row">
+            <label className="label">{data.isMissingPerson ? t('lbl_date_police') : t('lbl_dod')}</label>
+            {!data.isMissingPerson ? (
+              <>
+                <input type="date" min="1900-01-01" className={`form-input ${formErrors.p1dod ? 'border-[2px] border-error text-error' : ''}`} value={data.dod} onChange={e => { updateData('dod', e.target.value); setFormErrors(p => ({ ...p, p1dod: null })); }} />
+                {formErrors.p1dod && <div className="text-error text-xs font-bold mt-1">{formErrors.p1dod}</div>}
+                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 text-blue-800 text-xs font-medium rounded shadow-sm leading-tight">{t('msg_disclaimer_living')}</div>
+              </>
+            ) : (
+              <>
+                <input type="date" min="1900-01-01" className={`form-input ${formErrors.p1police ? 'border-[2px] border-error text-error' : ''}`} value={data.policeComplaintDate} onChange={e => { updateData('policeComplaintDate', e.target.value); setFormErrors(p => ({ ...p, p1police: null })); }} />
+                {formErrors.p1police && <div className="text-error text-xs font-bold mt-1">{formErrors.p1police}</div>}
+                {data.policeComplaintDate && !formErrors.p1police && (
+                  <span className="inline-block mt-1 px-2 py-0.5 bg-amber text-white text-xs font-bold rounded">
+                    {t('lbl_time_since_complaint')}: {computeFullAge(data.policeComplaintDate, new Date().toISOString().slice(0, 10))}
+                  </span>
+                )}
+                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 text-blue-800 text-xs font-medium rounded shadow-sm leading-tight">{t('msg_disclaimer_living')}</div>
+                <div className="text-xs text-amber font-bold mt-1">{t('msg_waiting_period_validated')}</div>
+                <LegalBadge refKey="missing_person_waiting" lang={i18n.language} />
+                {/* Location of disappearance */}
+                <div className="mt-3 p-3 bg-surface-alt border border-subtle rounded animate-fade-in">
+                  <label className="label font-bold mb-2">{t('lbl_missing_location')}</label>
+                  <div className={`flex gap-4 ${formErrors.missingLocation ? 'p-2 rounded border-[2px] border-error bg-red-50' : ''}`}>
+                    <label className="cursor-pointer font-bold text-sm"><input type="radio" checked={data.missingLocation === 'Sri Lanka'} onChange={() => { updateData('missingLocation', 'Sri Lanka'); setFormErrors(p => ({ ...p, missingLocation: null })); }} /> {t('opt_missing_sri_lanka')}</label>
+                    <label className="cursor-pointer font-bold text-sm"><input type="radio" checked={data.missingLocation === 'Abroad'} onChange={() => { updateData('missingLocation', 'Abroad'); setFormErrors(p => ({ ...p, missingLocation: null })); }} /> {t('opt_missing_abroad')}</label>
+                  </div>
+                  {formErrors.missingLocation && <div className="text-error text-xs font-bold mt-1">{formErrors.missingLocation}</div>}
+                  {data.missingLocation === 'Sri Lanka' && (
+                    <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-900 font-bold animate-fade-in">
+                      {t('msg_missing_sri_lanka_doc_note')}
+                    </div>
+                  )}
+                  {data.missingLocation === 'Abroad' && (
+                    <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded animate-fade-in">
+                      <p className="text-xs text-blue-900 font-bold mb-2">{t('msg_missing_abroad_doc_note')}</p>
+                      <label className={formErrors.foreignMinistryDate ? 'label text-error font-bold text-xs mb-1' : 'label text-xs mb-1'}>{t('lbl_foreign_ministry_date')}</label>
+                      <input type="date" min="1900-01-01" className={`form-input ${formErrors.foreignMinistryDate ? 'border-[2px] border-error text-error' : 'border-primary'}`} value={data.foreignMinistryDate || ''} onChange={e => { updateData('foreignMinistryDate', e.target.value); setFormErrors(p => ({ ...p, foreignMinistryDate: null })); }} />
+                      {formErrors.foreignMinistryDate && <div className="text-error text-xs font-bold mt-1">{formErrors.foreignMinistryDate}</div>}
+                      {data.foreignMinistryDate && (
+                        <span className="inline-block mt-1 px-2 py-0.5 bg-amber text-white text-xs font-bold rounded">
+                          {t('lbl_time_since_complaint')}: {computeFullAge(data.foreignMinistryDate, new Date().toISOString().slice(0, 10))}
+                        </span>
+                      )}
+                      <p className="text-[10px] text-blue-700 mt-1">{t('msg_foreign_ministry_date_note')}</p>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+          {data.isPensioner && (
+            <div className="form-row animate-fade-in">
+              <label className="label">{t('lbl_dor')}</label>
+              <input type="date" min="1900-01-01" className={`form-input ${formErrors.p1dor ? 'border-[2px] border-error text-error' : ''}`} value={data.dor} onChange={e => { updateData('dor', e.target.value); setFormErrors(p => ({ ...p, p1dor: null })); }} />
+              {formErrors.p1dor && <div className="text-error text-xs font-bold mt-1">{formErrors.p1dor}</div>}
+              {data.dob && data.dor && !formErrors.p1dor && (
+                <span className="inline-block mt-1 px-2 py-0.5 bg-primary text-white text-xs font-bold rounded">{t('lbl_age_at_retirement')}: {computeFullAge(data.dob, data.dor)}</span>
+              )}
+            </div>
+          )}
+          {!data.isMissingPerson && data.dod && (
+            <div className="form-row animate-fade-in">
+              <label className="label">{t('lbl_death_cert_no')}</label>
+              <input type="text" className={`form-input ${formErrors.p1deathCert ? 'border-[2px] border-error text-error' : ''}`} value={data.deathCertNo} onChange={e => { updateData('deathCertNo', e.target.value); setFormErrors(p => ({ ...p, p1deathCert: null })); }} />
+              {formErrors.p1deathCert && <div className="text-error text-xs font-bold mt-1">{formErrors.p1deathCert}</div>}
+            </div>
+          )}
+        </div>
+
+        <div className="button-group flex justify-end"><div></div><button className="btn" onClick={handleNext}>{t('btn_next_section_a')} <ChevronRight size={20} /></button></div>
+      </div>
+    );
+  };
+
+  const SectionA = () => {
+    const is45 = isOver45Strict(data.dob, data.doa);
+
+    return (
+      <div className="animate-fade-in">
+        <div className="tag">{t('section_a_title')}</div>
+        {formErrors.global && <div className="p-3 bg-red-100 text-error border-[2px] border-error mb-4 font-bold rounded animate-fade-in">{formErrors.global}</div>}
+
+        <div className="mb-6 p-4 bg-surface-alt border border-subtle rounded">
+          <label className="label mb-2">{t('lbl_service_sector')}</label>
+          <div className="flex gap-4 mb-4">
+            <label className="cursor-pointer"><input type="radio" checked={data.serviceSector === 'Civil'} onChange={() => { updateData('serviceSector', 'Civil'); updateData('serviceCategory', ''); }} /> {t('opt_civil')}</label>
+            <label className="cursor-pointer"><input type="radio" checked={data.serviceSector === 'Forces'} onChange={() => updateData('serviceSector', 'Forces')} /> {t('opt_forces')}</label>
+          </div>
+          {data.serviceSector === 'Forces' && (
+            <div>
+              <label className={`label mb-2 ${formErrors.svcCategory ? 'text-error font-bold' : 'text-primary'}`}>{t('lbl_service_category')} {formErrors.svcCategory && <span className="text-xs">— {formErrors.svcCategory}</span>}</label>
+              <div className={`flex gap-4 p-2 rounded ${formErrors.svcCategory ? 'border-[2px] border-error bg-red-50' : ''}`}>
+                <LegalBadge refKey={data.gender === 'Female' ? 'forces_female_regular' : 'forces_male_regular'} lang={i18n.language} />
+              <label className="cursor-pointer"><input type="radio" checked={data.serviceCategory === 'Regular Force'} onChange={() => { updateData('serviceCategory', 'Regular Force'); setFormErrors(p => ({ ...p, svcCategory: null })); }} /> {t('opt_regular_force')}</label>
+                <label className="cursor-pointer"><input type="radio" checked={data.serviceCategory === 'Volunteer Force'} onChange={() => { updateData('serviceCategory', 'Volunteer Force'); setFormErrors(p => ({ ...p, svcCategory: null })); }} /> {t('opt_volunteer_force')}</label>
+              </div>
+              <div className="mt-4">
+                {((data.serviceCategory === 'Regular Force' && data.doa && data.doa <= '1968-09-30') || 
+                  (data.serviceCategory === 'Volunteer Force' && data.doa && data.doa <= (data.gender === 'Male' ? '1981-09-01' : '1983-08-01'))) && (
+                  <div className="form-row">
+                    <label className={`label font-bold ${formErrors.militaryConsentDate ? 'text-error' : 'text-amber'}`}>{t('lbl_military_consent_date')} {formErrors.militaryConsentDate && <span className="text-xs">— {formErrors.militaryConsentDate}</span>}</label>
+                    <input type="date" className={`form-input ${formErrors.militaryConsentDate ? 'border-[2px] border-error text-error' : ''}`} value={data.militaryConsentDate} onChange={e => { updateData('militaryConsentDate', e.target.value); setFormErrors(p => ({ ...p, militaryConsentDate: null })); }} />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="form-row">
+            <label className="label">{t('lbl_doa')}</label>
+            <input type="date" min="1900-01-01" className={`form-input ${formErrors.doa ? 'border-[2px] border-error text-error' : ''}`} value={data.doa} onChange={e => { updateData('doa', e.target.value); setFormErrors(prev => ({ ...prev, doa: null, svcCategory: null, militaryConsentDate: null })); }} />
+            {formErrors.doa && <div className="text-error text-xs font-bold mt-1">{formErrors.doa}</div>}
+            {data.dob && data.doa && !formErrors.doa && (
+              <span className="inline-block mt-1 px-2 py-0.5 bg-primary text-white text-xs font-bold rounded">{t('lbl_age_at_appointment')}: {computeFullAge(data.dob, data.doa)}</span>
+            )}
+            <LegalBadge refKey={data.serviceSector === 'Forces' ? (data.gender === 'Female' ? 'forces_female_regular' : 'forces_male_regular') : (data.gender === 'Female' && data.doa >= '1983-08-01' ? 'female_civil_post1983' : data.gender === 'Male' ? 'male_civil_mandatory' : 'female_civil_pre1983_opt')} lang={i18n.language} />
+          </div>
+          <div className="form-row"><label className="label">{t('lbl_is_45')}</label><input type="text" className="form-input font-bold text-primary bg-surface-alt" disabled value={is45 ? t('msg_yes') : t('msg_no')} /></div>
+        </div>
+
+        {is45 && (
+          <div className="p-4 bg-amber-light border border-amber rounded mb-6">
+            <label className="label text-amber font-bold">{t('msg_appointee_gt_45')}</label>
+            <input type="date" min="1900-01-01" className="form-input mt-2" value={data.cabinetDate} onChange={e => updateData('cabinetDate', e.target.value)} />
+            {!data.cabinetDate && <div className="text-xs font-bold text-amber mt-1">{t('msg_no_approval_invalid')}</div>}
+          </div>
+        )}
+
+        <div className="mb-6 border-b border-subtle pb-4">
+          <label className="label mb-2">{t('lbl_appt_permanent')}</label>
+          <div className="flex gap-4">
+            <label><input type="radio" checked={data.isPermanent} onChange={() => { updateData('isPermanent', true); updateData('isEligible', true); }} /> {t('opt_yes')}</label>
+            <label><input type="radio" checked={data.isPermanent === false} onChange={() => updateData('isPermanent', false)} /> {t('opt_no_temp')}</label>
+          </div>
+
+          {data.isPermanent === false && !data.isPensioner && (
+            <div className="mt-4 p-4 bg-amber-light border border-amber rounded animate-fade-in">
+              <label className="label text-amber font-bold mb-2">{t('lbl_terrorist_exemption')}</label>
+              <p className="text-sm font-bold text-amber mb-2">{t('msg_died_terrorist')}</p>
+              <div className="flex gap-4">
+                <label className="text-sm cursor-pointer"><input type="radio" checked={data.diedDueToTerrorism === true} onChange={() => updateData('diedDueToTerrorism', true)} /> {t('opt_yes')}</label>
+                <label className="text-sm cursor-pointer"><input type="radio" checked={data.diedDueToTerrorism === false} onChange={() => updateData('diedDueToTerrorism', false)} /> {t('msg_no')}</label>
+              </div>
+            </div>
+          )}
+          {data.serviceSector === 'Forces' && data.isPensioner && (
+            <div className="mt-4 p-4 bg-amber-light border border-amber rounded animate-fade-in">
+              <label className="label text-amber font-bold mb-2">{t('lbl_retired_due_to_terrorism')}</label>
+              <div className="flex gap-4">
+                <label className="text-sm cursor-pointer"><input type="radio" checked={data.retiredDueToTerrorism === true} onChange={() => updateData('retiredDueToTerrorism', true)} /> {t('opt_yes')}</label>
+                <label className="text-sm cursor-pointer"><input type="radio" checked={data.retiredDueToTerrorism === false} onChange={() => updateData('retiredDueToTerrorism', false)} /> {t('msg_no')}</label>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {data.serviceSector === 'Forces' && (
+          <div className="mb-6 p-4 bg-surface-alt border border-subtle rounded animate-fade-in">
+            <label className="label font-bold">{t('lbl_officer_number')} <span className="text-error">*</span></label>
+            <input type="text" className={`form-input max-w-sm ${formErrors.p1officerNo ? 'border-[2px] border-error text-error' : ''}`} value={data.officerNumber} onChange={e => { updateData('officerNumber', e.target.value); updateData('memberNumber', e.target.value); setFormErrors(p => ({ ...p, p1officerNo: null, memberNumber: null })); }} />
+            {formErrors.p1officerNo && <div className="text-error text-xs font-bold mt-1">{formErrors.p1officerNo}</div>}
+          </div>
+        )}
+
+        {data.gender === 'Female' && (
+          <div className="mb-6 p-4 bg-surface-alt border border-subtle rounded">
+            <h4 className="font-bold text-primary mb-3">{t('lbl_female_validations')}</h4>
+            <div className="mb-4">
+              <label className="label">{t('lbl_appt_after_1983')}</label>
+              <div className="flex gap-4">
+                <label><input type="radio" checked={data.doa >= '1983-08-01'} readOnly /> {t('opt_yes_valid')}</label>
+                <label><input type="radio" checked={data.doa && data.doa < '1983-08-01'} readOnly /> {t('msg_no')}</label>
+              </div>
+            </div>
+            {data.doa && data.doa < '1983-08-01' && (
+              <div className="space-y-4">
+                <div className="form-row">
+                  <label className={`label ${formErrors.femaleConsent ? 'text-error font-bold' : ''}`}>{t('lbl_consent_wop')} {formErrors.femaleConsent && <span className="text-xs">— {formErrors.femaleConsent}</span>}</label>
+                  <select className={`form-input ${formErrors.femaleConsent ? 'border-[2px] border-error text-error' : ''}`} value={data.femaleConsent} onChange={e => {
+                    if (e.target.value === 'No + Reluctant') handleRejection([t('err_female_reluctant'), '⚖ ' + getLegalRef('female_civil_pre1983_ineligible', i18n.language)]);
+                    updateData('femaleConsent', e.target.value);
+                    setFormErrors(p => ({ ...p, femaleConsent: null }));
+                  }}>
+                    <option value="">{t('opt_select')}</option>
+                    <option value="Yes">{t('opt_yes')}</option>
+                    <option value="Yes Before 2014">{t('opt_yes_before_2014')}</option>
+                    <option value="Yes Evidence">{t('opt_yes_evidence')}</option>
+                    <option value="No + Reluctant">{t('opt_no_reluctant')}</option>
+                  </select>
+                  <LegalBadge refKey="female_civil_pre1983_opt" lang={i18n.language} />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="button-group">
+          <button className="btn btn-secondary" onClick={() => setCheckerStep(0)}><ChevronLeft size={20} /> {t('btn_back')}</button>
+          <button className="btn" onClick={() => {
+            const errsA = {};
+            if (!data.doa) errsA.doa = t('err_doa_required');
+            if (data.serviceSector === 'Forces' && !data.serviceCategory) errsA.svcCategory = t('err_service_category_required');
+            if (data.serviceSector === 'Forces' && !data.officerNumber) errsA.p1officerNo = t('err_officer_number_required');
+            if (data.gender === 'Female' && data.serviceSector === 'Civil' && data.doa && data.doa < '1983-08-01' && (!data.femaleConsent || data.femaleConsent === '')) {
+              errsA.femaleConsent = t('err_fill_female_consent');
+            }
+            // Military consent date validation
+            if (data.serviceSector === 'Forces' && data.serviceCategory === 'Regular Force' && data.doa <= '1968-09-30') {
+              if (!data.militaryConsentDate) errsA.militaryConsentDate = t('err_military_consent_missing');
+              else if (data.militaryConsentDate > '2006-06-30') { setFormErrors(errsA); handleRejection([t('err_military_consent_late_regular'), '⚖ ' + getLegalRef('forces_regular_consent_late', i18n.language)]); return; }
+            }
+            if (data.serviceSector === 'Forces' && data.serviceCategory === 'Volunteer Force') {
+              const cutoff = data.gender === 'Male' ? '1981-09-01' : '1983-08-01';
+              if (data.doa <= cutoff) {
+                if (!data.militaryConsentDate) errsA.militaryConsentDate = t('err_military_consent_missing');
+                else if (data.militaryConsentDate > '2012-12-31') { setFormErrors(errsA); handleRejection([t('err_military_consent_late_volunteer'), '⚖ ' + getLegalRef('forces_volunteer_consent_late', i18n.language)]); return; }
+              }
+            }
+            // Under-18 check: run before field errors so it can also set field error
+            if (data.dob && data.doa) {
+              const ageAtAppt = computeAgeAtDate(data.dob, data.doa);
+              if (ageAtAppt < 18) errsA.doa = t('err_under_18');
+            }
+            if (Object.keys(errsA).length > 0) { setFormErrors(prev => ({ ...prev, ...errsA, global: t('err_global_format') })); return; }
+            if (is45 && !data.cabinetDate) { handleRejection(t('err_no_cabinet_approval')); return; }
+            if (data.isPermanent === false && !(data.diedDueToTerrorism && !data.isPensioner) && !(data.serviceSector === 'Forces' && data.isPensioner && data.retiredDueToTerrorism)) {
+              handleRejection([t('err_not_permanent'), '⚖ ' + getLegalRef('non_pensionable_ineligible', i18n.language)]); return;
+            }
+            setFormErrors({});
+            setCheckerStep(2);
+          }}>{t('btn_next_section_b')} <ChevronRight size={20} /></button>
+        </div>
+      </div>
+    );
+  };
+
+  const SectionB_C = () => (
+    <div className="animate-fade-in">
+      <div className="tag">{t('section_b_c_title')}</div>
+      {formErrors.global && <div className="p-3 bg-red-100 text-error border-[2px] border-error mb-4 font-bold rounded animate-fade-in">{formErrors.global}</div>}
+      <h2 className="text-2xl font-bold mb-4">{t('lbl_reg_term')}</h2>
+
+      <div className="p-4 bg-surface-alt border border-subtle rounded mb-6">
+        <label className="label text-primary font-bold">{t('lbl_is_wop_reg')}</label>
+        <div className="flex gap-4 items-center">
+          <label><input type="radio" checked={data.registrationValid} onChange={() => { updateData('registrationValid', true); updateData('isEligible', true); }} /> {t('opt_yes')}</label>
+          <label><input type="radio" checked={!data.registrationValid} onChange={() => handleRejection(t('err_not_reg_wop'))} /> {t('msg_no')}</label>
+        </div>
+        {data.registrationValid && (
+          <div className="mt-3 form-row max-w-sm">
+            <label className={formErrors.memberNumber ? 'label text-error font-bold' : 'label'}>{t('lbl_wop_no')}</label>
+            {data.serviceSector === 'Forces' ? (
+              <>
+                <input type="text" className="form-input bg-primary/5 border-primary font-bold text-primary" value={data.memberNumber} readOnly />
+                <div className="mt-1 flex items-center gap-1.5">
+                  <span className="inline-block px-2 py-0.5 bg-primary text-white text-xs font-bold rounded">{t('msg_auto_filled_forces')}</span>
+                  <span className="text-xs text-muted">{t('msg_forces_wop_same_as_number')}</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <input type="text" className={`form-input ${formErrors.memberNumber ? 'border-[2px] border-error text-error' : ''}`} value={data.memberNumber} onChange={e => { updateData('memberNumber', e.target.value); setFormErrors(p => ({ ...p, memberNumber: null })); }} />
+                {formErrors.memberNumber && <div className="text-error text-xs font-bold mt-1">{formErrors.memberNumber}</div>}
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="mb-6 pb-4 border-b border-subtle">
+        <label className="label font-bold text-primary mb-2">{t('lbl_contributions_recovered')}</label>
+        <div className="flex gap-4 items-center">
+          <label><input type="radio" checked={data.contributionRecovered} onChange={() => { updateData('contributionRecovered', true); updateData('isEligible', true); }} /> {t('opt_yes')}</label>
+          <label><input type="radio" checked={!data.contributionRecovered} onChange={() => handleRejection(t('err_contributions_unrecovered'))} /> {t('msg_no')}</label>
+        </div>
+      </div>
+
+      <h2 className="text-2xl font-bold mb-4">{t('lbl_sec_c_term')}</h2>
+
+      {data.isPensioner ? (
+        <div className="p-4 bg-surface-alt rounded mb-6 border border-subtle">
+          <h4 className="font-bold text-primary mb-2">{t('lbl_pensioner_details')}</h4>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="form-row">
+              <label className="label">{t('lbl_retired_date')}</label>
+              <input type="date" className="form-input bg-gray-100" disabled value={data.dor} />
+              {data.dob && data.dor && (
+                <span className="inline-block mt-1 px-2 py-0.5 bg-primary text-white text-xs font-bold rounded">{t('lbl_age_at_retirement')}: {computeFullAge(data.dob, data.dor)}</span>
+              )}
+            </div>
+
+            <div className="form-row">
+              <label className="label">{t('lbl_pension_commenced')}</label>
+              <div className="flex gap-4 mb-2">
+                <label><input type="radio" checked={!data.pensionNotCommenced} onChange={() => updateData('pensionNotCommenced', false)} /> {t('opt_yes')}</label>
+                <label><input type="radio" checked={data.pensionNotCommenced} onChange={() => { updateData('pensionNotCommenced', true); updateData('lastPensionPaymentDate', ''); }} /> {t('msg_no')}</label>
+              </div>
+
+              {!data.pensionNotCommenced && (
+                <div className="animate-fade-in">
+                  <label className="label">{t('lbl_last_pension_date')}</label>
+                  <input type="date" min={data.dor || '1900-01-01'} className={`form-input ${formErrors.lastPensionDate ? 'border-[2px] border-error text-error' : (data.lastPensionPaymentDate && data.dor && data.lastPensionPaymentDate < data.dor ? 'border-[2px] border-error text-error' : 'border-primary')}`} value={data.lastPensionPaymentDate} onChange={e => updateData('lastPensionPaymentDate', e.target.value)} />
+                  {(formErrors.lastPensionDate) && (
+                    <div className="text-error text-xs font-bold mt-1">{formErrors.lastPensionDate}</div>
+                  )}
+                  {data.lastPensionPaymentDate && data.dor && data.lastPensionPaymentDate < data.dor && !formErrors.lastPensionDate && (
+                    <div className="text-error text-xs font-bold mt-1">{t('err_last_pension_before_retirement')}</div>
+                  )}
+                  {overpaidMonths > 0 && (
+                    <div className="mt-2 p-2 bg-red-50 border border-error rounded text-sm font-bold text-error">
+                      {data.isMissingPerson
+                        ? t('msg_overpayment_missing').replace('{months}', overpaidMonths)
+                        : t('msg_overpayment_deceased').replace('{months}', overpaidMonths)}
+                    </div>
+                  )}
+                </div>
+              )}
+              {data.pensionNotCommenced && (
+                <div className="mt-2 text-sm font-bold p-3 rounded bg-amber-light text-amber border border-amber animate-fade-in">
+                  Statutory Warning: If payments had not commenced, the Last Working Place must submit a PD 03 application for Heirs' Payments. The W&OP (PD 04) application must be forwarded alongside PD 03.
+                </div>
+              )}
+            </div>
+          </div>
+
+        </div>
+      ) : (
+        <div className="animate-fade-in p-4 bg-surface-alt rounded mb-6 border border-subtle">
+          <label className="label font-bold text-primary mb-2">{t('lbl_loss_of_pension')}</label>
+          <div className="flex gap-4 mb-4">
+            <label><input type="radio" checked={data.endedWithLossOfPension} onChange={() => updateData('endedWithLossOfPension', true)} /> {t('opt_yes')}</label>
+            <label><input type="radio" checked={!data.endedWithLossOfPension} onChange={() => updateData('endedWithLossOfPension', false)} /> {t('msg_no')}</label>
+          </div>
+
+          {data.endedWithLossOfPension && (
+            <div className="form-row border-t border-[rgba(0,0,0,0.1)] pt-4 mt-2">
+              <label className={formErrors.lossOfPensionDate ? 'label text-error font-bold' : 'label'}>{t('lbl_loss_date')}</label>
+              <input type="date" min="1900-01-01" className={`form-input mb-1 ${formErrors.lossOfPensionDate ? 'border-[2px] border-error text-error' : ''}`} value={data.lossOfPensionDate} onChange={e => { updateData('lossOfPensionDate', e.target.value); setFormErrors(p => ({ ...p, lossOfPensionDate: null })); }} />
+              {formErrors.lossOfPensionDate && <div className="text-error text-xs font-bold mb-3">{formErrors.lossOfPensionDate}</div>}
+
+              <label className={formErrors.lossOfPensionReason ? 'label text-error font-bold' : 'label'}>{t('lbl_loss_reason')}</label>
+              <div className={`flex flex-col gap-2 mb-2 p-2 rounded ${formErrors.lossOfPensionReason ? 'border-[2px] border-error bg-red-50' : ''}`}>
+                <label><input type="radio" checked={data.lossOfPensionReason === 'Abolished Post'} onChange={() => { updateData('lossOfPensionReason', 'Abolished Post'); setFormErrors(p => ({ ...p, lossOfPensionReason: null })); }} /> Retired due to close of institution or abolish Designation/Post</label>
+                <label><input type="radio" checked={data.lossOfPensionReason === 'Other'} onChange={() => { updateData('lossOfPensionReason', 'Other'); setFormErrors(p => ({ ...p, lossOfPensionReason: null })); }} /> Other Reasons</label>
+              </div>
+              {formErrors.lossOfPensionReason && <div className="text-error text-xs font-bold mb-2">{formErrors.lossOfPensionReason}</div>}
+
+              {data.lossOfPensionReason === 'Other' && data.lossOfPensionDate && (
+                <div className="mt-2 text-sm font-bold p-3 rounded bg-amber-light text-amber border border-amber animate-fade-in">
+                  Condition: 10 Years Minimum Service applied unless appointment date was prior to 1981.07.02. Marriages formalized strictly AFTER {data.lossOfPensionDate} will be invalidated.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Hide Reckonable/Uncountable logic if explicitly a pensioner, because those are already figured out during initial pension calc */}
+      {!data.isPensioner && (
+        <div className="animate-fade-in">
+          <div className="p-4 rounded border border-subtle mb-6">
+            <h4 className="font-bold text-lg mb-2">{t('lbl_uncountable')}</h4>
+            {data.uncountablePeriods.map((up, i) => (
+              <div key={i} className="flex gap-4 mb-2 items-center">
+                <input type="date" min="1900-01-01" className="form-input w-full" value={up.from} onChange={e => { let arr = [...data.uncountablePeriods]; arr[i].from = e.target.value; updateData('uncountablePeriods', arr) }} />
+                <span>{t('lbl_to')}</span>
+                <input type="date" min="1900-01-01" className="form-input w-full" value={up.to} onChange={e => { let arr = [...data.uncountablePeriods]; arr[i].to = e.target.value; updateData('uncountablePeriods', arr) }} />
+              </div>
+            ))}
+            <button className="btn btn-secondary text-sm" onClick={() => updateData('uncountablePeriods', [...data.uncountablePeriods, { from: '', to: '' }])}>{t('btn_add_period')} +</button>
+          </div>
+
+          <div className="mb-4">
+            <label className="label font-bold text-primary">{t('lbl_reckonable_calc')}</label>
+            <div className="grid grid-cols-3 gap-4">
+              <input type="number" disabled className="form-input bg-surface-alt font-bold" value={data.reckonableYears} />
+              <input type="number" disabled className="form-input bg-surface-alt font-bold" value={data.reckonableMonths} />
+              <input type="number" disabled className="form-input bg-surface-alt font-bold" value={data.reckonableDays} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="button-group">
+        <button className="btn btn-secondary" onClick={() => setCheckerStep(1)}><ChevronLeft size={20} /> {t('btn_back')}</button>
+        <button className="btn" onClick={() => {
+          const errsBC = {};
+          // WOP registration — Forces members' number IS their WOP number (auto-filled)
+          if (data.registrationValid && !data.memberNumber && data.serviceSector !== 'Forces') errsBC.memberNumber = t('err_member_number_required');
+          // Pensioner checks
+          if (data.isPensioner && !data.dor) errsBC.p1dor = t('err_dor_required');
+          if (data.isPensioner && data.pensionNotCommenced === undefined) errsBC.pensionCommenced = t('err_pension_commenced_required');
+          if (data.isPensioner && !data.pensionNotCommenced && !data.lastPensionPaymentDate) errsBC.lastPensionDate = t('err_last_pension_required');
+          if (data.isPensioner && !data.pensionNotCommenced && data.lastPensionPaymentDate && data.dor && data.lastPensionPaymentDate < data.dor) errsBC.lastPensionDate = t('err_last_pension_before_retirement');
+          // In-service (non-pensioner) checks
+          if (!data.isPensioner && data.endedWithLossOfPension && !data.lossOfPensionDate) errsBC.lossOfPensionDate = t('err_loss_date_required');
+          if (!data.isPensioner && data.endedWithLossOfPension && !data.lossOfPensionReason) errsBC.lossOfPensionReason = t('err_loss_reason_required');
+          if (Object.keys(errsBC).length > 0) { setFormErrors(prev => ({ ...prev, ...errsBC, global: t('err_global_format') })); return; }
+          if (!data.isPensioner && data.endedWithLossOfPension && data.lossOfPensionReason === 'Other') {
+            if (data.doa >= '1981-07-02') {
+              if (data.reckonableYears < 10) {
+                handleRejection(["Statutory Application Voided: Contributor service terminated with loss of pension and did not complete the mandatory minimum 10 years of reckonable service.", '⚖ ' + getLegalRef('under10yrs_no_pension', i18n.language)]);
+                return;
+              }
+            }
+          }
+          setCheckerStep(3);
+        }}>{t('btn_next_section_d')} <ChevronRight size={20} /></button>
+      </div>
+    </div>
+  );
+
+  const renderMarriageBuilder = (title, countKey, arrKey, isApplicantMode = false) => {
+    const handleCountChange = (e) => {
+      const num = parseInt(e.target.value) || 0;
+      updateData(countKey, num);
+      let arr = [...data[arrKey]];
+      if (arr.length < num) {
+        for (let i = arr.length; i < num; i++) arr.push({
+          date: '', cert: '', div: '',
+          s_name: '', s_nic: '', s_alive: true, s_dod: '', s_div_date: '', s_dob: '',
+          s_gov_emp: false, s_gov_reg_no: '', s_claiming_wop: false, s_wop_pen_no: '',
+          s_pen_own: false, s_pen_own_no: '',
+          isUnregistered: false, unreg_evidence: [], unreg_notes: '',
+          childrenCount: 0, children: []
+        });
+      } else arr = arr.slice(0, num);
+      updateData(arrKey, arr);
+    };
+
+    const updateMar = (i, field, val) => {
+      let arr = [...data[arrKey]];
+      if (!arr[i]) arr[i] = {
+        date: '', cert: '', div: '', law: 'General', s_name: '', s_nic: '', s_alive: true, s_dod: '', s_div_date: '', s_dob: '',
+        s_gov_emp: false, s_gov_reg_no: '', s_claiming_wop: false, s_wop_pen_no: '',
+        s_pen_own: false, s_pen_own_no: '',
+        isUnregistered: false, unreg_evidence: [], unreg_notes: '',
+        childrenCount: 0, children: []
+      };
+      arr[i][field] = val;
+      updateData(arrKey, arr);
+    };
+
+    if (data[arrKey].length === 0 && data[countKey] > 0) {
+      let init = []; for (let n = 0; n < data[countKey]; n++) init.push({
+        date: '', cert: '', div: '', law: 'General', s_name: '', s_nic: '', s_alive: true, s_dod: '', s_div_date: '', s_dob: '',
+        s_gov_emp: false, s_gov_reg_no: '', s_claiming_wop: false, s_wop_pen_no: '',
+        s_pen_own: false, s_pen_own_no: '',
+        isUnregistered: false, unreg_evidence: [], unreg_notes: '',
+        childrenCount: 0, children: []
+      });
+      setTimeout(() => updateData(arrKey, init), 0);
+    }
+
+    // Legacy identical block functionally overridden natively inline.
+
+    return (
+      <div className="animate-fade-in pb-8 mt-6">
+        <div className="form-row max-w-sm mb-6 p-4 bg-surface-alt border border-subtle rounded">
+          <label className="label text-primary font-bold">{t('lbl_num_marriages')}</label>
+          <select className="form-input font-bold" value={data[countKey]} onChange={handleCountChange}>
+            {isApplicantMode ? [1, 2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n}</option>) : [0, 1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+        </div>
+
+        {data[arrKey].map((m, i) => {
+          if (isApplicantMode && i === (data.app_contributor_marriage_index || 0)) {
+            return (
+              <div key={i} className="mb-6 p-6 bg-blue-50 border border-blue-200 rounded-xl shadow-sm text-center">
+                <h3 className="font-bold text-xl text-blue-900 border-b border-blue-200 pb-2 mb-4">{t('lbl_marriage_record_contributor').replace('{n}', i + 1)}</h3>
+                <p className="font-bold text-blue-800 mb-2">{t('msg_marriage_mapped_contributor')}</p>
+                {data.contributorMarriagesCount > 1 ? (
+                  <div className="mt-4 inline-block bg-[#ffffff] p-4 rounded shadow-sm border border-blue-200">
+                    <label className="text-sm font-bold text-primary block mb-2">{t('lbl_specify_contributor')}</label>
+                    <select className="form-input text-sm border-primary" value={data.app_link_contributor_index || 0} onChange={e => {
+                      const linkIdx = parseInt(e.target.value);
+                      updateData('app_link_contributor_index', linkIdx);
+                      let arr = [...data.applicantMarriages];
+                      if (data.contributorMarriages[linkIdx]) {
+                        arr[i] = JSON.parse(JSON.stringify(data.contributorMarriages[linkIdx]));
+                        updateData('applicantMarriages', arr);
+                      }
+                    }}>
+                      {data.contributorMarriages.map((cm, cIdx) => (
+                        <option key={cIdx} value={cIdx}>{t('opt_sync_marriage')} {cIdx + 1}</option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <p className="text-sm text-blue-700 mt-2 font-bold">{t('msg_data_persistently_mapped')}</p>
+                )}
+              </div>
+            );
+          }
+
+          return (
+            <div key={i} className="mb-6 p-6 bg-[#ffffff] border border-subtle rounded-xl shadow-lg">
+              <h3 className="font-bold text-xl text-primary border-b border-subtle pb-2 mb-4">{t('lbl_marriage_record_n')} {i + 1}</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <div className="form-row m-0">
+                  <label className="label">{t('lbl_marriage_law')}</label>
+                  <select className="form-input" value={m.law || 'General'} onChange={e => updateMar(i, 'law', e.target.value)}>
+                    <option value="General">{t('opt_general')}</option>
+                    <option value="Kandyan">{t('opt_kandyan')}</option>
+                    <option value="Muslim">{t('opt_muslim')}</option>
+                  </select>
+                </div>
+                <div className="form-row m-0">
+                  <label className="label">{t('lbl_marriage_date')}</label>
+                  <input type="date" min="1900-01-01" className={`form-input ${formErrors[`${arrKey}_${i}_date`] ? 'border-[2px] border-error text-error' : ''}`} value={m.date || ''} onChange={e => { updateMar(i, 'date', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_date`]: null })) }} />
+                  {formErrors[`${arrKey}_${i}_date`] && <div className="text-error text-xs font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_date`]}</div>}
+                  {data.dob && m.date && !formErrors[`${arrKey}_${i}_date`] && (
+                    <span className="inline-block mt-1 px-2 py-0.5 bg-primary text-white text-xs font-bold rounded">{t('lbl_age_at_marriage')}: {computeFullAge(data.dob, m.date)}</span>
+                  )}
+                </div>
+                {/* Registration toggle */}
+                <div className="form-row m-0">
+                  <label className="label">{t('lbl_marriage_registered')}</label>
+                  <select className="form-input" value={m.isUnregistered ? 'unregistered' : 'registered'} onChange={e => updateMar(i, 'isUnregistered', e.target.value === 'unregistered')}>
+                    <option value="registered">{t('opt_registered')}</option>
+                    <option value="unregistered">{t('opt_unregistered')}</option>
+                  </select>
+                </div>
+                {!m.isUnregistered ? (
+                  <div className="form-row m-0">
+                    <label className="label">{t('lbl_cert_number')}</label>
+                    <input type="text" className={`form-input ${formErrors[`${arrKey}_${i}_cert`] ? 'border-[2px] border-error text-error' : ''}`} value={m.cert || ''} onChange={e => { updateMar(i, 'cert', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_cert`]: null })) }} />
+                    {formErrors[`${arrKey}_${i}_cert`] && <div className="text-error text-[10px] font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_cert`]}</div>}
+                  </div>
+                ) : (
+                  <div className="form-row m-0">
+                    <label className="label text-amber">{t('lbl_cert_number_optional')}</label>
+                    <input type="text" className="form-input border-amber" value={m.cert || ''} onChange={e => updateMar(i, 'cert', e.target.value)} />
+                  </div>
+                )}
+              </div>
+              <div className="form-row m-0 mb-4">
+                <label className="label">{t('lbl_reg_division')}</label><input type="text" className="form-input" value={m.div || ''} onChange={e => updateMar(i, 'div', e.target.value)} />
+              </div>
+
+              {/* Unregistered marriage evidence panel */}
+              {m.isUnregistered && (
+                <div className="mb-4 p-4 bg-amber-light border-2 border-amber rounded-xl animate-fade-in">
+                  <h4 className="font-bold text-amber flex items-center gap-2 mb-2"><AlertTriangle size={18} /> {t('lbl_unregistered_info')}</h4>
+                  <p className="text-sm font-bold text-amber mb-3" style={{whiteSpace:'pre-line'}}>{t('msg_unregistered_rule')}</p>
+                  <div className="p-3 bg-red-50 border border-error rounded mb-3">
+                    <p className="text-xs font-bold text-error">{t('msg_unregistered_dg_note')}</p>
+                  </div>
+                  <label className="label text-amber font-bold mb-2">{t('lbl_unregistered_evidence_types')}</label>
+                  {[
+                    ['electoral', t('opt_evidence_electoral')],
+                    ['birth_cert', t('opt_evidence_birth_cert')],
+                    ['affidavit', t('opt_evidence_affidavit')],
+                    ['institution', t('opt_evidence_institution')],
+                    ['witnesses', t('opt_evidence_witnesses')],
+                    ['custom_cert', t('opt_evidence_custom_cert')]
+                  ].map(([key, label]) => (
+                    <label key={key} className="flex items-start gap-2 mb-2 cursor-pointer text-sm font-bold text-[#92400e]">
+                      <input type="checkbox" className="mt-0.5 min-w-[16px]" checked={(m.unreg_evidence || []).includes(key)}
+                        onChange={e => {
+                          const cur = m.unreg_evidence || [];
+                          updateMar(i, 'unreg_evidence', e.target.checked ? [...cur, key] : cur.filter(x => x !== key));
+                        }} />
+                      {label}
+                    </label>
+                  ))}
+                  <div className="form-row mt-3">
+                    <label className="label text-amber">{t('lbl_unregistered_notes')}</label>
+                    <textarea className="form-input min-h-[64px] text-sm" value={m.unreg_notes || ''} onChange={e => updateMar(i, 'unreg_notes', e.target.value)} />
+                  </div>
+                </div>
+              )}
+
+              {!isApplicantMode && data.dor && m.date && m.date > data.dor && (
+                <div className="bg-amber-light text-amber border border-amber p-2 rounded text-sm font-bold mb-4">
+                  {t('msg_warning_marriage_after_ret')} ({data.dor}).
+                </div>
+              )}
+
+              <h4 className="font-bold text-lg mb-2 pt-4 border-t border-subtle">{t('lbl_spouse_civil_info')}</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="form-row">
+                <label className={`label text-muted text-xs ${formErrors[`${arrKey}_${i}_s_name`] ? 'text-error font-bold' : ''}`}>{t('lbl_spouse_name')}</label>
+                <input type="text" placeholder={t('lbl_spouse_name')} className={`form-input ${formErrors[`${arrKey}_${i}_s_name`] ? 'border-[2px] border-error text-error' : ''}`} value={m.s_name || ''} onChange={e => { updateMar(i, 's_name', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_name`]: null })); }} />
+                {formErrors[`${arrKey}_${i}_s_name`] && <div className="text-error text-xs font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_s_name`]}</div>}
+              </div>
+                <div className="form-row">
+                  <label className="label text-muted text-xs">{t('lbl_spouse_nic')}</label>
+                  <input type="text" placeholder={t('lbl_spouse_nic')} className={`form-input ${formErrors[`${arrKey}_${i}_s_nic`] ? 'border-[2px] border-error text-error' : ''}`} value={m.s_nic || ''} onChange={e => { updateMar(i, 's_nic', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_nic`]: null })) }} />
+                  {formErrors[`${arrKey}_${i}_s_nic`] && <div className="text-error text-xs font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_s_nic`]}</div>}
+                </div>
+                <div className="form-row"><label className="label text-muted text-xs">{t('lbl_spouse_dob')}</label><input type="date" min="1900-01-01" className={`form-input ${formErrors[`${arrKey}_${i}_s_dob`] ? 'border-[2px] border-error text-error' : ''}`} title={t('lbl_spouse_dob')} value={m.s_dob || ''} onChange={e => { updateMar(i, 's_dob', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_dob`]: null })); }} />
+                  {m.s_dob && <span className="inline-block mt-1 px-2 py-0.5 bg-primary text-white text-xs font-bold rounded">{t('lbl_age')}: {computeDynamicAge(m.s_dob)}</span>}
+                  {m.s_dob && m.date && <span className="inline-block mt-1 ml-2 px-2 py-0.5 bg-indigo-600 text-white text-xs font-bold rounded">{t('lbl_age_at_marriage')}: {computeFullAge(m.s_dob, m.date)}</span>}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4 mb-4 bg-gray-50 border border-subtle p-3 rounded">
+                <div>
+                  <label className="label text-xs">{t('lbl_spouse_gov_emp')}</label>
+                  <select className="form-input text-sm" value={m.s_gov_emp ? 'Yes' : 'No'} onChange={e => updateMar(i, 's_gov_emp', e.target.value === 'Yes')}><option value="No">{t('msg_no')}</option><option value="Yes">{t('opt_yes')}</option></select>
+                  {m.s_gov_emp && <input type="text" placeholder={t('lbl_wop_reg_no')} className="form-input text-sm mt-2 border-primary" value={m.s_gov_reg_no || ''} onChange={e => updateMar(i, 's_gov_reg_no', e.target.value)} />}
+                </div>
+                <div>
+                  <label className="label text-xs">{t('lbl_spouse_gov_pen')}</label>
+                  <select className="form-input text-sm" value={m.s_pen_own ? 'Yes' : 'No'} onChange={e => updateMar(i, 's_pen_own', e.target.value === 'Yes')}><option value="No">{t('msg_no')}</option><option value="Yes">{t('opt_yes')}</option></select>
+                  {m.s_pen_own && <input type="text" placeholder={t('lbl_spouse_pen_no')} className="form-input text-sm mt-2 border-primary" value={m.s_pen_own_no || ''} onChange={e => updateMar(i, 's_pen_own_no', e.target.value)} />}
+                </div>
+                <div>
+                  <label className="label text-xs">{t('lbl_claiming_another_wop')}</label>
+                  <select className="form-input text-sm" value={m.s_claiming_wop ? 'Yes' : 'No'} onChange={e => updateMar(i, 's_claiming_wop', e.target.value === 'Yes')}><option value="No">{t('msg_no')}</option><option value="Yes">{t('opt_yes')}</option></select>
+                  {m.s_claiming_wop && <input type="text" placeholder={t('lbl_exist_wop_no')} className="form-input text-sm mt-2 border-primary" value={m.s_wop_pen_no || ''} onChange={e => updateMar(i, 's_wop_pen_no', e.target.value)} />}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 mb-4 bg-gray-50 p-4 border border-subtle rounded">
+                <div className="form-row m-0">
+                  <label className="label">{t('lbl_current_legal_status')}</label>
+                  <select className="form-input" value={m.s_term || 'Active Legal Marriage'} onChange={e => {
+                    let arr = [...data[arrKey]];
+                    arr[i].s_term = e.target.value;
+                    if (e.target.value === 'Ended: Demise of Spouse') arr[i].s_alive = false;
+                    updateData(arrKey, arr);
+                  }}>
+                    <option value="Active Legal Marriage">{t('opt_active_legal')}</option>
+                    <option value="Ended: Demise of Spouse">{t('opt_ended_demise')}</option>
+                    <option value="Legally Divorced">{t('opt_legally_divorced')}</option>
+                    <option value="Separated">{t('opt_separated')}</option>
+                    <option value="Void">{t('opt_void')}</option>
+                  </select>
+                </div>
+
+                {m.s_term === 'Legally Divorced' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 p-3 bg-amber-50 border border-amber rounded animate-fade-in">
+                    <div className="form-row m-0">
+                      <label className="label text-[#b45309]">{t('lbl_decree_nisi')}</label>
+                      <input type="date" min="1900-01-01" className={`form-input text-sm ${formErrors[`${arrKey}_${i}_s_nisi_date`] ? 'border-[2px] border-error text-error' : ''}`} value={m.s_nisi_date || ''} onChange={e => { updateMar(i, 's_nisi_date', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_nisi_date`]: null })) }} />
+                      {formErrors[`${arrKey}_${i}_s_nisi_date`] && <div className="text-error text-xs font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_s_nisi_date`]}</div>}
+                    </div>
+                    <div className="form-row m-0">
+                      <label className="label text-[#b45309]">{t('lbl_decree_absolute')}</label>
+                      <input type="date" min="1900-01-01" className={`form-input text-sm ${formErrors[`${arrKey}_${i}_s_div_date`] ? 'border-[2px] border-error text-error' : ''}`} value={m.s_div_date || ''} onChange={e => { updateMar(i, 's_div_date', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_div_date`]: null })) }} />
+                      {formErrors[`${arrKey}_${i}_s_div_date`] && <div className="text-error text-xs font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_s_div_date`]}</div>}
+                    </div>
+                  </div>
+                )}
+
+                {m.s_term === 'Separated' && (
+                  <div className="mt-2 p-3 bg-indigo-50 border border-indigo-200 rounded animate-fade-in">
+                    <div className="form-row mb-2">
+                      <label className="label text-indigo-900">{t('lbl_sep_date')}</label>
+                      <input type="date" min="1900-01-01" className={`form-input text-sm max-w-sm ${formErrors[`${arrKey}_${i}_s_sep_date`] ? 'border-[2px] border-error text-error' : ''}`} value={m.s_sep_date || ''} onChange={e => { updateMar(i, 's_sep_date', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_sep_date`]: null })) }} />
+                      {formErrors[`${arrKey}_${i}_s_sep_date`] && <div className="text-error text-xs font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_s_sep_date`]}</div>}
+                    </div>
+                    <p className="text-xs font-bold text-indigo-700">{t('msg_sep_warning')}</p>
+                  </div>
+                )}
+
+                {m.s_term === 'Void' && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2 p-3 bg-red-50 border border-red-200 rounded animate-fade-in">
+                    <div className="form-row m-0">
+                      <label className="label text-red-900 leading-tight">{t('lbl_court_order_date')}</label>
+                      <input type="date" min="1900-01-01" className={`form-input text-sm ${formErrors[`${arrKey}_${i}_s_void_date`] ? 'border-[2px] border-error text-error' : ''}`} value={m.s_void_date || ''} onChange={e => { updateMar(i, 's_void_date', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_void_date`]: null })) }} />
+                      {formErrors[`${arrKey}_${i}_s_void_date`] && <div className="text-error text-xs font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_s_void_date`]}</div>}
+                    </div>
+                    <div className="form-row m-0">
+                      <label className="label text-red-900 leading-tight">{t('lbl_court_name')}</label>
+                      <input type="text" placeholder="e.g. District Court" className={`form-input text-sm ${formErrors[`${arrKey}_${i}_s_void_court`] ? 'border-[2px] border-error text-error' : ''}`} value={m.s_void_court || ''} onChange={e => { updateMar(i, 's_void_court', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_void_court`]: null })) }} />
+                      {formErrors[`${arrKey}_${i}_s_void_court`] && <div className="text-error text-[10px] font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_s_void_court`]}</div>}
+                    </div>
+                    <div className="form-row m-0">
+                      <label className="label text-red-900 leading-tight">{t('lbl_case_number')}</label>
+                      <input type="text" placeholder="Case Ref No." className={`form-input text-sm ${formErrors[`${arrKey}_${i}_s_void_case`] ? 'border-[2px] border-error text-error' : ''}`} value={m.s_void_case || ''} onChange={e => { updateMar(i, 's_void_case', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_void_case`]: null })) }} />
+                      {formErrors[`${arrKey}_${i}_s_void_case`] && <div className="text-error text-[10px] font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_s_void_case`]}</div>}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {m.s_term !== 'Ended: Demise of Spouse' && (
+                <div className="flex gap-4 mb-4 items-center bg-surface-alt p-2 rounded border border-subtle">
+                  <label className="label mb-0 font-bold">{t('lbl_spouse_living')}</label>
+                  <label className="flex gap-2 items-center text-sm cursor-pointer"><input type="radio" checked={m.s_alive === true} onChange={() => updateMar(i, 's_alive', true)} /> {t('opt_alive')}</label>
+                  <label className="flex gap-2 items-center text-sm cursor-pointer"><input type="radio" checked={m.s_alive === false} onChange={() => updateMar(i, 's_alive', false)} /> {t('opt_deceased')}</label>
+                </div>
+              )}
+
+              {m.s_alive && m.s_term === 'Active Legal Marriage' && data.dod && (
+                <div className="mb-4 bg-surface-alt p-4 border border-subtle rounded animate-fade-in">
+                  <label className="label font-bold">{t('lbl_has_remarried')}</label>
+                  <div className="flex gap-4">
+                    <label><input type="radio" checked={m.s_remarried === true} onChange={() => updateMar(i, 's_remarried', true)} /> {t('opt_yes')}</label>
+                    <label><input type="radio" checked={m.s_remarried === false} onChange={() => updateMar(i, 's_remarried', false)} /> {t('msg_no')}</label>
+                  </div>
+                  {m.s_remarried && (
+                    <div className="mt-2 form-row max-w-sm">
+                      <label className="label">{t('lbl_remarriage_date')}</label>
+                      <input type="date" min="1900-01-01" className={`form-input max-w-sm ${formErrors[`${arrKey}_${i}_s_rem_date`] ? 'border-[2px] border-error text-error' : 'border-amber'}`} value={m.s_remarriage_date || ''} onChange={e => { updateMar(i, 's_remarriage_date', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_rem_date`]: null })); }} />
+                      {formErrors[`${arrKey}_${i}_s_rem_date`] && <div className="text-error text-xs font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_s_rem_date`]}</div>}
+
+                      {m.s_remarriage_date && m.s_remarriage_date < '2010-08-17' && (
+                        <div className="mt-3 p-3 bg-amber-light border border-amber rounded">
+                          <label className="font-bold text-amber block mb-2">{t('lbl_apply_50_wop')}</label>
+                          <div className="flex gap-4">
+                            <label className="text-sm font-bold text-amber cursor-pointer"><input type="radio" checked={m.s_remarriage_applied_50 === true} onChange={() => updateMar(i, 's_remarriage_applied_50', true)} /> {t('opt_yes')}</label>
+                            <label className="text-sm font-bold text-amber cursor-pointer"><input type="radio" checked={m.s_remarriage_applied_50 === false} onChange={() => updateMar(i, 's_remarriage_applied_50', false)} /> {t('msg_no')}</label>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {(!m.s_alive || m.s_term === 'Ended: Demise of Spouse') && (
+                <div className="grid grid-cols-2 gap-4 mb-4 p-4 border border-subtle bg-gray-50 rounded animate-fade-in">
+                  <div className="form-row">
+                    <label className="label font-bold text-[#334155]">{t('lbl_absolute_dod')}</label>
+                    <input type="date" min="1900-01-01" className={`form-input border-[1px] border-amber ${formErrors[`${arrKey}_${i}_s_dod`] ? 'border-[2px] border-error' : ''}`} value={m.s_dod || ''} onChange={e => { updateMar(i, 's_dod', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_dod`]: null })) }} />
+                    {formErrors[`${arrKey}_${i}_s_dod`] && <div className="text-error text-xs font-bold leading-tight mt-1">{formErrors[`${arrKey}_${i}_s_dod`]}</div>}
+                  </div>
+                  <div className="form-row"><label className="label font-bold text-[#334155]">{t('lbl_death_cert_no')}</label><input type="text" className="form-input border-amber" /></div>
+                </div>
+              )}
+
+              <div className="border-t border-subtle mt-6 pt-4 bg-surface-alt p-4 rounded mt-4">
+                <h4 className="font-bold text-lg mb-2 text-primary">{t('lbl_children_tied')} {i + 1}</h4>
+                <div className="form-row max-w-sm mb-4">
+                  <label className="label">{t('lbl_no_children')}</label>
+                  <select className="form-input" value={m.childrenCount || 0} onChange={(e) => {
+                    const n = parseInt(e.target.value);
+                    let cArr = m.children || [];
+                    if (cArr.length < n) for (let j = cArr.length; j < n; j++) cArr.push({ name: '', gender: 'Male', dob: '', bc: '', nicChild: '', occ: 'School Student', dis: '', income: '' });
+                    else cArr = cArr.slice(0, n);
+                    updateMar(i, 'childrenCount', n); updateMar(i, 'children', cArr);
+                  }}>
+                    {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(n => <option key={n} value={n}>{n}</option>)}
+                  </select>
+                </div>
+
+                {m.children && m.children.length > 0 && (
+                  <div className="space-y-4">
+                    {m.children.map((child, j) => {
+                      const cAge = computeDynamicAge(child.dob);
+                      return (
+                        <div key={j} className="bg-[#ffffff] p-4 rounded border border-subtle shadow-sm">
+                          <h5 className="font-bold mb-2">{t('lbl_child_details').replace('{n}', j + 1)}</h5>
+                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-2">
+                            <input type="text" placeholder="Full Name" className="form-input text-sm" value={child.name} onChange={e => { let arr = [...m.children]; arr[j].name = e.target.value; updateMar(i, 'children', arr); }} />
+                            <div>
+                              <select className={`form-input text-sm ${formErrors[`${arrKey}_${i}_c_${j}_gender`] ? 'border-[2px] border-error text-error' : ''}`} value={child.gender} onChange={e => { let arr = [...m.children]; arr[j].gender = e.target.value; updateMar(i, 'children', arr); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_c_${j}_gender`]: null })); }}><option value="Male">Male</option><option value="Female">Female</option></select>
+                              {formErrors[`${arrKey}_${i}_c_${j}_gender`] && <div className="text-error text-[10px] font-bold mt-0.5">{formErrors[`${arrKey}_${i}_c_${j}_gender`]}</div>}
+                            </div>
+                            <input type="text" placeholder="Birth Cert No" className="form-input text-sm" value={child.bc} onChange={e => { let arr = [...m.children]; arr[j].bc = e.target.value; updateMar(i, 'children', arr); }} />
+                            <div>
+                              <input type="date" min="1900-01-01" className={`form-input text-sm mb-1 ${formErrors[`${arrKey}_${i}_c_${j}_dob`] ? 'border-[2px] border-error text-error' : ''}`} value={child.dob} onChange={e => { let arr = [...m.children]; arr[j].dob = e.target.value; updateMar(i, 'children', arr); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_c_${j}_dob`]: null })); }} />
+                              {formErrors[`${arrKey}_${i}_c_${j}_dob`] && <div className="text-error text-[10px] font-bold mt-0.5">{formErrors[`${arrKey}_${i}_c_${j}_dob`]}</div>}
+                              {!formErrors[`${arrKey}_${i}_c_${j}_dob`] && <div className="text-xs text-primary font-bold">{t('lbl_auto_age').replace('{age}', cAge)}</div>}
+                            </div>
+                          </div>
+                          {cAge !== '' && cAge >= 16 && (
+                            <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded flex gap-2 items-center flex-wrap">
+                              <span className="text-sm font-bold text-blue-800">{t('msg_child_16_nic')}</span>
+                              <input type="text" placeholder="Child NIC/SLNIC" className={`form-input text-sm w-48 border-blue-400 ${formErrors[`${arrKey}_${i}_c_${j}_nic`] ? 'border-[2px] border-red-700 text-error' : ''}`} value={child.nicChild} onChange={e => { let arr = [...m.children]; arr[j].nicChild = e.target.value; updateMar(i, 'children', arr); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_c_${j}_nic`]: null })) }} />
+                              {formErrors[`${arrKey}_${i}_c_${j}_nic`] && <div className="text-red-700 w-full text-xs font-bold leading-tight ml-1">{formErrors[`${arrKey}_${i}_c_${j}_nic`]}</div>}
+                            </div>
+                          )}
+                          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                            <select className="form-input text-sm" value={child.occ} onChange={e => { let arr = [...m.children]; arr[j].occ = e.target.value; updateMar(i, 'children', arr); }}>
+                              <option>School Student</option><option>College/Univ Student</option><option>Unemployed</option><option>Govt. Job</option>
+                              <option>Private/Semi Govt. Job</option><option>Informal Job</option>
+                            </select>
+                            <input type="text" placeholder="Disability (If Any)" className="form-input text-sm" value={child.dis} onChange={e => { let arr = [...m.children]; arr[j].dis = e.target.value; updateMar(i, 'children', arr); }} />
+                            <input type="number" placeholder="Monthly Income" className="form-input text-sm" value={child.income} onChange={e => { let arr = [...m.children]; arr[j].income = e.target.value; updateMar(i, 'children', arr); }} />
+                          </div>
+                          <div className="mt-2 flex items-center gap-3">
+                            <label className="flex gap-2 items-center text-sm font-bold cursor-pointer text-primary">
+                              <input type="checkbox" className="min-w-[16px] min-h-[16px]" checked={child.is_married || false} onChange={e => { let arr = [...m.children]; arr[j].is_married = e.target.checked; updateMar(i, 'children', arr); }} />
+                              {t('lbl_child_is_married')}
+                            </label>
+                            {child.is_married && child.is_disabled && (
+                              <span className="text-xs font-bold text-amber px-2 py-0.5 bg-amber-light border border-amber rounded animate-fade-in">{t('msg_child_married_disabled_review')}</span>
+                            )}
+                          </div>
+
+                          <div className="mt-3 p-3 bg-gray-50 border border-subtle rounded animate-fade-in shadow-sm">
+                            <label className="flex gap-2 text-sm font-bold text-[#334155] cursor-pointer"><input type="checkbox" className="min-w-[16px]" checked={child.is_disabled || false} onChange={e => { let arr = [...m.children]; arr[j].is_disabled = e.target.checked; updateMar(i, 'children', arr); }} /> {t('lbl_child_disabled')}</label>
+                            {child.is_disabled && (
+                              <div className="pl-6 space-y-2 mt-2 border-l-2 border-primary">
+                                <label className="flex gap-2 text-sm cursor-pointer"><input type="checkbox" checked={child.dis_before_26 || false} onChange={e => { let arr = [...m.children]; arr[j].dis_before_26 = e.target.checked; updateMar(i, 'children', arr); }} /> {t('lbl_child_dis_before_26')}</label>
+                                <label className="flex gap-2 text-sm cursor-pointer"><input type="checkbox" checked={child.health_307 || false} onChange={e => { let arr = [...m.children]; arr[j].health_307 = e.target.checked; updateMar(i, 'children', arr); }} /> {t('lbl_child_health_307')}</label>
+                                {child.health_307 && (
+                                  <div className="pl-6 space-y-2 mt-2 border-l-2 border-blue-400 animate-fade-in">
+                                    <label className="flex gap-2 text-sm cursor-pointer"><input type="checkbox" checked={child.med_board || false} onChange={e => { let arr = [...m.children]; arr[j].med_board = e.target.checked; updateMar(i, 'children', arr); }} /> {t('lbl_child_med_board')}</label>
+                                    {child.med_board && (
+                                      <div className="form-row mt-2 max-w-sm animate-fade-in"><label className="label text-xs text-blue-900">{t('lbl_med_board_date')}</label><input type="date" min="1900-01-01" className="form-input text-xs border-blue-400" value={child.med_board_date || ''} onChange={e => { let arr = [...m.children]; arr[j].med_board_date = e.target.value; updateMar(i, 'children', arr); }} /></div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const SectionD = () => {
+    const isDGApprovalNeeded = checkDGPensionApprovalNeeded();
+
+    return (
+      <div>
+        <div className="tag">{t('section_d_title')}</div>
+        {formErrors.global && <div className="p-3 bg-red-100 text-error border-[2px] border-error mb-4 font-bold rounded animate-fade-in">{formErrors.global}</div>}
+        <h2 className="text-2xl font-bold mb-4">{t('lbl_contributor_civil_status')}</h2>
+
+        {renderMarriageBuilder("Section D", "contributorMarriagesCount", "contributorMarriages")}
+
+        {isDGApprovalNeeded && (
+          <div className="p-4 bg-amber-light border border-amber rounded mb-6 mt-4">
+            <h4 className="font-bold text-amber flex items-center gap-2"><AlertTriangle size={20} /> {t('lbl_dg_approval_needed')}</h4>
+            <p className="text-amber mt-1 text-sm font-bold">{t('msg_dg_approval_needed')}</p>
+          </div>
+        )}
+
+        <div className="button-group mt-0 border-none pt-0">
+          <button className="btn btn-secondary" onClick={() => setCheckerStep(2)}><ChevronLeft size={20} /> {t('btn_back')}</button>
+          <button className="btn" onClick={() => {
+            if (data.contributorMarriagesCount === 0) {
+              handleRejection(t('err_no_wop_benefit'));
+              return;
+            }
+            let errs = {};
+            let fatals = [];
+            for (let i = 0; i < data.contributorMarriages.length; i++) {
+              let m = data.contributorMarriages[i];
+              const ageAtMarriage = m.date && data.dob ? computeAgeAtDate(data.dob, m.date) : '';
+              const allowedPostRet = data.serviceSector === 'Forces' && data.retiredDueToTerrorism && ageAtMarriage !== '' && ageAtMarriage < 55;
+              // Required: marriage date
+              if (!m.date) errs[`contributorMarriages_${i}_date`] = t('err_marriage_date_required');
+              // Required: cert number if registered
+              if (!m.isUnregistered && !m.cert) errs[`contributorMarriages_${i}_cert`] = t('err_cert_required');
+              if (m.cert && !/^\d+$/.test(m.cert)) errs[`contributorMarriages_${i}_cert`] = t('err_numeric_required');
+              // Required: spouse name
+              if (!m.s_name) errs[`contributorMarriages_${i}_s_name`] = t('err_spouse_name_required');
+              // Termination dates when applicable
+              if (m.s_term === 'Legally Divorced') {
+                if (!m.s_nisi_date) errs[`contributorMarriages_${i}_s_nisi_date`] = t('err_decree_nisi_required');
+                if (!m.s_div_date) errs[`contributorMarriages_${i}_s_div_date`] = t('err_decree_absolute_required');
+              }
+              if (m.s_term === 'Separated' && !m.s_sep_date) errs[`contributorMarriages_${i}_s_sep_date`] = t('err_sep_date_required');
+              if (m.s_term === 'Void') {
+                if (!m.s_void_date) errs[`contributorMarriages_${i}_s_void_date`] = t('err_void_date_required');
+                if (!m.s_void_court) errs[`contributorMarriages_${i}_s_void_court`] = t('err_void_court_required');
+                if (!m.s_void_case) errs[`contributorMarriages_${i}_s_void_case`] = t('err_void_case_required');
+              }
+              if (m.s_remarried && !m.s_remarriage_date) errs[`contributorMarriages_${i}_s_rem_date`] = t('err_remarriage_date_required');
+              if ((!m.s_alive || m.s_term === 'Ended: Demise of Spouse') && !m.s_dod) errs[`contributorMarriages_${i}_s_dod`] = t('err_spouse_dod_required');
+              // Children DOB required
+              (m.children || []).forEach((c, j) => {
+                if (!c.dob) errs[`contributorMarriages_${i}_c_${j}_dob`] = t('err_child_dob_required');
+              });
+              if (data.dor && m.date && m.date > data.dor && !allowedPostRet) {
+                fatals.push(`${t('lbl_marriage_record_n')} ${i + 1}: ${t('err_fatal_marriage_post_ret')}`);
+              }
+            }
+            const linearCheck = validateLinearMarriages(data.contributorMarriages, data.dob, data.gender, 'contributorMarriages', data, t);
+            if (!linearCheck.valid) {
+              errs = { ...errs, ...linearCheck.errors };
+            }
+            if (linearCheck.rejections) {
+              fatals = [...fatals, ...linearCheck.rejections];
+            }
+
+            if (fatals.length > 0) {
+              handleRejection(fatals);
+              return;
+            }
+
+            if (Object.keys(errs).length > 0) {
+              setFormErrors({ ...formErrors, ...errs, global: t('err_format_red_fields') });
+              return;
+            }
+
+            setFormErrors({});
+
+            let linkIdx = data.app_link_contributor_index || 0;
+            let conIdx = data.app_contributor_marriage_index || 0;
+            let arr = [...data.applicantMarriages];
+            if (data.contributorMarriages[linkIdx] && arr.length > conIdx) {
+              arr[conIdx] = JSON.parse(JSON.stringify(data.contributorMarriages[linkIdx]));
+              updateData('applicantMarriages', arr);
+            }
+
+            setCheckerStep(4);
+          }}>{t('btn_next_section_e')} <ChevronRight size={20} /></button>
+        </div>
+      </div>
+    );
+  };
+
+  const SectionE_F = () => (
+    <div>
+      <div className="tag">{t('section_e_title')}</div>
+      {formErrors.global && <div className="p-3 bg-red-100 text-error border-[2px] border-error mb-4 font-bold rounded animate-fade-in">{formErrors.global}</div>}
+      <h2 className="text-2xl font-bold mb-4">{t('lbl_applicant_civil_status')}</h2>
+
+      {/* Auto-Sync Logical Block functionally subsumed universally natively below. */}
+
+      {data.applicantMarriagesCount > 1 && !data.identicalApplicantMarriage && (
+        <div className="mb-4 bg-surface-alt p-4 border border-subtle rounded animate-fade-in shadow-sm">
+          <label className="font-bold text-primary block mb-3">{t('lbl_which_marriage_connects')}</label>
+          <div className="flex gap-4 flex-wrap">
+            {data.applicantMarriages.map((m, idx) => (
+              <label key={idx} className="cursor-pointer flex items-center gap-2 font-bold text-sm bg-[#ffffff] py-1 px-3 rounded border border-subtle">
+                <input type="radio" checked={data.app_contributor_marriage_index === idx} onChange={() => updateData('app_contributor_marriage_index', idx)} /> {t('lbl_marriage_idx')}{idx + 1}
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {renderMarriageBuilder("Section E", "applicantMarriagesCount", "applicantMarriages", true)}
+
+      <div className="bg-[#ffffff] p-6 border border-subtle rounded-xl mt-6 shadow-sm mb-6">
+        <h3 className="font-bold text-lg text-primary mb-2 border-b border-subtle pb-2">{t('lbl_applicant_post_demise_status')}</h3>
+        <div className="flex items-center gap-4 mb-4">
+          <label className="font-bold text-sm text-[#334155]">{t('lbl_applicant_engaged_another_marriage')}</label>
+          <label className="cursor-pointer"><input type="radio" checked={data.a_remarried} onChange={() => updateData('a_remarried', true)} /> {t('opt_yes')}</label>
+          <label className="cursor-pointer"><input type="radio" checked={!data.a_remarried} onChange={() => updateData('a_remarried', false)} /> {t('msg_no')}</label>
+        </div>
+        <div className="mt-6 pt-4 border-t border-subtle">
+          <h4 className="font-bold text-[#334155] mb-4">{t('lbl_dependent_orphan_care')}</h4>
+          {(() => {
+            const validOrphans = extractOrphans();
+            if (validOrphans.length === 0) return <div className="text-sm text-muted italic animate-fade-in">{t('msg_no_eligible_orphans')}</div>;
+            return validOrphans.map(o => (
+              <div key={o.childId} className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mb-3 p-3 bg-surface-alt rounded border border-subtle animate-fade-in">
+                <span className="text-sm font-bold flex-1 text-primary">{o.name || t('lbl_unnamed_dependent')} <span className="text-xs font-normal text-muted">({t('lbl_marriage_idx')} {o.marriageIndex}) {o.isEligibleDisabled ? '[Disabled Flag]' : ''}</span></span>
+                <label className="text-sm font-bold min-w-48 text-[#334155]">{t('lbl_maintained_by_applicant')}</label>
+                <label className="cursor-pointer px-2 py-1"><input type="radio" checked={(data.orphan_care || {})[o.childId] !== false} onChange={() => { updateData('orphan_care', { ...(data.orphan_care || {}), [o.childId]: true }) }} /> {t('opt_yes')} <span className="text-[10px] ml-1 text-success">{t('msg_maintains_proxy')}</span></label>
+                <label className="cursor-pointer px-2 py-1"><input type="radio" checked={(data.orphan_care || {})[o.childId] === false} onChange={() => { updateData('orphan_care', { ...(data.orphan_care || {}), [o.childId]: false }) }} /> {t('msg_no')} <span className="text-[10px] ml-1 text-amber">{t('msg_delegates_ownership')}</span></label>
+              </div>
+            ));
+          })()}
+        </div>
+        {data.a_remarried && (
+          <div className="form-row pt-2 pb-2">
+            <label className="label">{t('lbl_remarriage_date')}</label>
+            <input type="date" min="1900-01-01" className={`form-input max-w-sm ${formErrors.a_remarriage_date ? 'border-[2px] border-error text-error' : 'border-amber'}`} value={data.a_remarriage_date || ''} onChange={e => { updateData('a_remarriage_date', e.target.value); setFormErrors(p => ({ ...p, a_remarriage_date: null })); }} />
+            {formErrors.a_remarriage_date && <div className="text-error text-xs font-bold mt-1">{formErrors.a_remarriage_date}</div>}
+            <p className="text-amber text-xs font-bold mt-1 mb-2">{t('msg_warning_validating_remarriage')}</p>
+
+            {data.a_remarriage_date && data.a_remarriage_date < '2010-08-17' && (
+              <div className="mt-3 p-3 bg-amber-light border border-amber rounded">
+                <label className="font-bold text-amber block mb-2">{t('lbl_apply_50_wop')}</label>
+                <div className="flex gap-4">
+                  <label className="text-sm font-bold text-amber cursor-pointer"><input type="radio" checked={data.a_remarriage_applied_50 === true} onChange={() => updateData('a_remarriage_applied_50', true)} /> {t('opt_yes')}</label>
+                  <label className="text-sm font-bold text-amber cursor-pointer"><input type="radio" checked={data.a_remarriage_applied_50 === false} onChange={() => updateData('a_remarriage_applied_50', false)} /> {t('msg_no')}</label>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="button-group mt-0 pt-0">
+        <button className="btn btn-secondary" onClick={() => setCheckerStep(3)}><ChevronLeft size={20} /> {t('btn_back')}</button>
+        <button className="btn" style={{ background: "var(--success)" }} onClick={() => {
+          let errs = {};
+          let fatals = [];
+          for (let i = 0; i < data.applicantMarriages.length; i++) {
+            const m = data.applicantMarriages[i];
+            const ageAtMarriage = m.date && data.dob ? computeAgeAtDate(data.dob, m.date) : '';
+            const allowedPostRet = data.serviceSector === 'Forces' && data.retiredDueToTerrorism && ageAtMarriage !== '' && ageAtMarriage < 55;
+            const isContributorSlot = i === (data.app_contributor_marriage_index || 0);
+            if (!isContributorSlot) {
+              // Only validate non-contributor slots (contributor slot data comes from Section D)
+              if (!m.date) errs[`applicantMarriages_${i}_date`] = t('err_marriage_date_required');
+              if (!m.isUnregistered && !m.cert) errs[`applicantMarriages_${i}_cert`] = t('err_cert_required');
+              if (!m.s_name) errs[`applicantMarriages_${i}_s_name`] = t('err_spouse_name_required');
+              if (m.s_term === 'Legally Divorced') {
+                if (!m.s_nisi_date) errs[`applicantMarriages_${i}_s_nisi_date`] = t('err_decree_nisi_required');
+                if (!m.s_div_date) errs[`applicantMarriages_${i}_s_div_date`] = t('err_decree_absolute_required');
+              }
+              if (m.s_term === 'Separated' && !m.s_sep_date) errs[`applicantMarriages_${i}_s_sep_date`] = t('err_sep_date_required');
+              if (m.s_term === 'Void') {
+                if (!m.s_void_date) errs[`applicantMarriages_${i}_s_void_date`] = t('err_void_date_required');
+                if (!m.s_void_court) errs[`applicantMarriages_${i}_s_void_court`] = t('err_void_court_required');
+                if (!m.s_void_case) errs[`applicantMarriages_${i}_s_void_case`] = t('err_void_case_required');
+              }
+              if (m.s_remarried && !m.s_remarriage_date) errs[`applicantMarriages_${i}_s_rem_date`] = t('err_remarriage_date_required');
+              if ((!m.s_alive || m.s_term === 'Ended: Demise of Spouse') && !m.s_dod) errs[`applicantMarriages_${i}_s_dod`] = t('err_spouse_dod_required');
+            }
+            if (m.cert && !/^\d+$/.test(m.cert)) errs[`applicantMarriages_${i}_cert`] = t('err_numeric_required');
+            if (data.dor && m.date && m.date > data.dor && !allowedPostRet) {
+              fatals.push(`${t('lbl_marriage_idx')} ${i + 1}: ${t('err_applicant_marriage_post_ret')}`);
+            }
+          }
+          // Applicant remarriage date required if remarried
+          if (data.a_remarried && !data.a_remarriage_date) errs.a_remarriage_date = t('err_remarriage_date_required');
+          const linearCheck = validateLinearMarriages(data.applicantMarriages, null, null, 'applicantMarriages', data, t);
+          if (!linearCheck.valid) {
+            errs = { ...errs, ...linearCheck.errors };
+          }
+          if (linearCheck.rejections) {
+            fatals = [...fatals, ...linearCheck.rejections];
+          }
+          if (data.a_remarried && data.a_remarriage_date && data.a_remarriage_date < '2010-08-17' && data.a_remarriage_applied_50 === false) {
+            fatals.push(t('err_applicant_remarried_no_50'));
+          }
+          if (fatals.length > 0) {
+            handleRejection(fatals);
+            return;
+          }
+
+          if (Object.keys(errs).length > 0) {
+            setFormErrors({ ...formErrors, ...errs, global: t('err_format_red_fields') });
+            return;
+          }
+
+          // Track Remarriage / Divorce logic contextually
+          const conIdx = data.app_contributor_marriage_index || 0;
+          const conMar = data.applicantMarriages[conIdx];
+          if (conMar && conMar.s_term === 'Legally Divorced') {
+            handleRejection([t('err_divorced_from_contributor'), '⚖ ' + getLegalRef('post_retirement_marriage', i18n.language)]); return;
+          }
+          if (data.applicantMarriages.length - 1 > conIdx) {
+            updateData('a_remarried', true);
+          } else if (data.applicantMarriages.length - 1 === conIdx) {
+            updateData('a_remarried', false);
+          }
+
+          // Clear prior errors dynamically upon successful check
+          setFormErrors({});
+          updateData('isEligible', true);
+          updateData('rejectionReasons', []);
+          setCheckerStep(5); // Proceed to Section_Docs
+        }}>{t('btn_proceed_docs')} <ChevronRight size={20} /></button>
       </div>
     </div>
   );
