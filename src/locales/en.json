@@ -442,5 +442,8 @@
   "msg_foreign_ministry_date_note": "This date is used as the reference for overpayment calculation and eligibility waiting period instead of the police complaint date.",
   "err_foreign_ministry_date_required": "Date of disappearance as per the Foreign Ministry letter is required.",
   "err_missing_retired_4m": "Eligibility criteria not met: For a missing pensioner, a minimum of 4 months must have elapsed from the reference date before a W&OP claim can be processed.",
-  "err_missing_active_12m": "Eligibility criteria not met: For a missing in-service contributor, a minimum of 12 months must have elapsed from the reference date before a W&OP claim can be processed."
+  "err_missing_active_12m": "Eligibility criteria not met: For a missing in-service contributor, a minimum of 12 months must have elapsed from the reference date before a W&OP claim can be processed.",
+  "lbl_overall_legal_provision": "Overall Eligibility Legal Provision:",
+  "msg_disclaimer_living": "Disclaimer: This portal is for actual incidents. If you are checking eligibility while living, it is at your own discretion. W&OP benefits only apply after the demise of the contributor. You may enter a preferred hypothetical date of death/missing, and use '0000' for the death certificate number.",
+  "btn_print_rejection_report": "Print Rejection Report"
 }

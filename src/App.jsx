@@ -873,6 +873,7 @@ function App() {
               <>
                 <input type="date" min="1900-01-01" className={`form-input ${formErrors.p1dod ? 'border-[2px] border-error text-error' : ''}`} value={data.dod} onChange={e => { updateData('dod', e.target.value); setFormErrors(p => ({ ...p, p1dod: null })); }} />
                 {formErrors.p1dod && <div className="text-error text-xs font-bold mt-1">{formErrors.p1dod}</div>}
+                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 text-blue-800 text-xs font-medium rounded shadow-sm leading-tight">{t('msg_disclaimer_living')}</div>
               </>
             ) : (
               <>
@@ -883,6 +884,7 @@ function App() {
                     {t('lbl_time_since_complaint')}: {computeFullAge(data.policeComplaintDate, new Date().toISOString().slice(0, 10))}
                   </span>
                 )}
+                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 text-blue-800 text-xs font-medium rounded shadow-sm leading-tight">{t('msg_disclaimer_living')}</div>
                 <div className="text-xs text-amber font-bold mt-1">{t('msg_waiting_period_validated')}</div>
                 <LegalBadge refKey="missing_person_waiting" lang={i18n.language} />
                 {/* Location of disappearance */}
@@ -1462,6 +1464,7 @@ function App() {
                 </div>
                 <div className="form-row"><label className="label text-muted text-xs">{t('lbl_spouse_dob')}</label><input type="date" min="1900-01-01" className={`form-input ${formErrors[`${arrKey}_${i}_s_dob`] ? 'border-[2px] border-error text-error' : ''}`} title={t('lbl_spouse_dob')} value={m.s_dob || ''} onChange={e => { updateMar(i, 's_dob', e.target.value); setFormErrors(p => ({ ...p, [`${arrKey}_${i}_s_dob`]: null })); }} />
                   {m.s_dob && <span className="inline-block mt-1 px-2 py-0.5 bg-primary text-white text-xs font-bold rounded">{t('lbl_age')}: {computeDynamicAge(m.s_dob)}</span>}
+                  {m.s_dob && m.date && <span className="inline-block mt-1 ml-2 px-2 py-0.5 bg-indigo-600 text-white text-xs font-bold rounded">{t('lbl_age_at_marriage')}: {computeFullAge(m.s_dob, m.date)}</span>}
                 </div>
               </div>
 
@@ -2061,6 +2064,7 @@ function App() {
             <p className="mt-6 text-sm text-muted font-bold">{t('msg_rejection_trigger_info')}</p>
             <button className="btn mt-4 bg-surface-alt text-primary border-primary hover:bg-gray-100 mr-4" onClick={() => { updateData('isEligible', true); setCheckerStep(0); }}>{t('btn_back_correct_inputs')}</button>
             <button className="btn mt-8" style={{ background: 'var(--error)' }} onClick={() => resetApp()}>{t('btn_acknowledge_exit')}</button>
+            <button className="btn mt-8 ml-4" style={{ background: '#334155', color: '#fff' }} onClick={() => handlePrint('rejection')}>{t('btn_print_rejection_report')}</button>
           </div>
         );
       }
@@ -2643,6 +2647,11 @@ function App() {
               <p style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1e293b', margin: '0.25rem 0' }}>{t('lbl_required_docs_checklist')}</p>
               <p style={{ fontSize: '0.75rem', color: '#64748b' }}>{t('lbl_contributor')}: {data.name || t('msg_na')} | {t('lbl_nic')}: {data.nic || t('msg_na')} | {t('lbl_ref')}{data.memberNumber || t('msg_na')}{t('lbl_generated')}{new Date().toLocaleDateString('en-GB')}</p>
             </div>
+            
+            <div style={{ marginBottom: '1.5rem', padding: '0.75rem', background: '#f8fafc', borderLeft: '4px solid #7c3aed', borderRadius: '4px' }}>
+              <strong style={{ color: '#1e293b', fontSize: '0.85rem' }}>{t('lbl_overall_legal_provision')}</strong>
+              <div style={{ fontSize: '0.8rem', color: '#475569', marginTop: '0.25rem' }}>⚖ {getLegalRef(data.serviceSector === 'Forces' ? (data.gender === 'Female' ? 'forces_female_regular' : 'forces_male_regular') : (data.gender === 'Female' && data.doa >= '1983-08-01' ? 'female_civil_post1983' : data.gender === 'Male' ? 'male_civil_mandatory' : 'female_civil_pre1983_opt'), i18n.language)}</div>
+            </div>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 800, borderBottom: '2px solid #0284c7', paddingBottom: '0.5rem', marginBottom: '1rem', color: '#0284c7' }}>{t('lbl_required_docs_checklist')}</h2>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', marginBottom: '2rem' }}>
               <thead>
@@ -2758,6 +2767,26 @@ function App() {
                 <p style={{ color: '#475569' }}>{t('lbl_stamp_date')}</p>
               </div>
             </div>
+          </div>
+
+          {/* --- PRINT: REJECTION REPORT --- */}
+          <div className={`print-only ${printMode === 'rejection' ? 'print-active' : ''}`}>
+            <div style={{ textAlign: 'center', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '3px double #e11d48' }}>
+              <h1 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#e11d48', margin: 0 }}>{t('lbl_wop_system')}</h1>
+              <p style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569', margin: '0.25rem 0' }}>{t('lbl_wop_pensions_division')}</p>
+              <p style={{ fontSize: '1rem', fontWeight: 700, color: '#9f1239', margin: '0.25rem 0' }}>{t('section_f_ineligibility_title')}</p>
+              <p style={{ fontSize: '0.75rem', color: '#64748b' }}>{t('lbl_generated')}{new Date().toLocaleDateString('en-GB')} {new Date().toLocaleTimeString('en-GB')}</p>
+            </div>
+            
+            <div style={{ marginBottom: '1.5rem' }}>
+              <p style={{ fontSize: '0.9rem', color: '#334155', marginBottom: '0.5rem' }}><strong>{t('lbl_contributor')}:</strong> {data.name || t('msg_not_provided')}</p>
+              <p style={{ fontSize: '0.9rem', color: '#334155' }}><strong>{t('lbl_nic')}:</strong> {data.nic || t('msg_not_provided')}</p>
+            </div>
+
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#e11d48', marginBottom: '1rem', borderBottom: '1px solid #e11d48', paddingBottom: '0.5rem' }}>{t('lbl_failure_identifiers')}</h3>
+            <ul style={{ paddingLeft: '1.5rem', color: '#9f1239', fontSize: '0.9rem', lineHeight: '1.5' }}>
+              {(data.rejectionReasons || []).map((r, idx) => <li key={idx} style={{ marginBottom: '0.75rem' }}>{r}</li>)}
+            </ul>
           </div>
 
           {/* --- PRINT: ELIGIBILITY DETERMINATION REPORT ONLY --- */}
