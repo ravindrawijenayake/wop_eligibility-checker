@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WOP Eligibility Checker | Public Service</title>
+    <title>W&OP Eligibility Portal</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter for high legibility -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script>
@@ -17,8 +15,8 @@
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        govblue: '#1e3a8a', // Deep authoritative blue
-                        govgold: '#d97706', // Accent color
+                        govblue: '#0f172a', // Deep slate/blue for authority
+                        brandblue: '#2563eb', // Action color
                         surface: '#f8fafc',
                     }
                 }
@@ -26,215 +24,123 @@
         }
     </script>
 </head>
-<body class="bg-surface min-h-screen flex flex-col font-sans text-gray-800 antialiased">
+<body class="bg-surface min-h-screen flex flex-col font-sans text-gray-800 antialiased selection:bg-brandblue selection:text-white">
 
-    <!-- Top Action Bar (Language / Accessibility) -->
-    <div class="bg-gray-900 text-gray-300 py-2 text-xs font-medium">
-        <div class="max-w-4xl mx-auto px-4 flex justify-between items-center">
+    <!-- Minimal Header -->
+    <header class="bg-white border-b border-gray-200">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <span class="text-white"><i class="fa-solid fa-universal-access mr-1"></i> Accessibility</span>
-                <button class="hover:text-white transition">A+</button>
-                <button class="hover:text-white transition">A-</button>
-            </div>
-            <div class="flex gap-4">
-                <button class="text-white font-semibold">EN</button>
-                <button class="hover:text-white transition">සිංහල</button>
-                <button class="hover:text-white transition">தமிழ்</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Header -->
-    <header class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <!-- Placeholder for Govt/Department Emblem -->
-                <div class="w-12 h-12 bg-govblue text-white rounded-full flex items-center justify-center shadow-inner border-2 border-govgold">
-                    <i class="fa-solid fa-building-columns"></i>
+                <div class="w-10 h-10 bg-govblue text-white rounded-md flex items-center justify-center shadow-sm">
+                    <i class="fa-solid fa-landmark"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-xl text-gray-900 leading-tight">WOP Eligibility Portal</h1>
-                    <p class="text-xs text-gray-500 font-medium">Widows' & Orphans' Pension Scheme</p>
+                    <h1 class="font-bold text-lg text-gray-900 leading-none">W&OP Portal</h1>
+                    <p class="text-xs text-gray-500 font-medium mt-1">Department of Pensions</p>
                 </div>
+            </div>
+            <!-- Optional Top Links -->
+            <div class="hidden sm:flex gap-6 text-sm font-medium text-gray-600">
+                <a href="#" class="hover:text-brandblue transition-colors">About W&OP</a>
+                <a href="#" class="hover:text-brandblue transition-colors">Guidelines</a>
+                <a href="#" class="hover:text-brandblue transition-colors">Contact</a>
             </div>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="flex-grow py-10 px-4">
-        
-        <div class="max-w-4xl mx-auto">
-            
-            <!-- Context Banner -->
-            <div class="mb-8 text-center md:text-left">
-                <h2 class="text-3xl font-bold text-gray-900 mb-2">Check Your Eligibility</h2>
-                <p class="text-gray-600 max-w-2xl text-sm md:text-base">
-                    Verify if you qualify to register for the WOP scheme. Please ensure your National Identity Card (NIC) and Date of Appointment are accurate before checking.
-                </p>
-            </div>
-
-            <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                
-                <!-- Security Indicator -->
-                <div class="bg-blue-50 border-b border-blue-100 px-6 py-3 flex items-center gap-3">
-                    <i class="fa-solid fa-shield-halved text-govblue"></i>
-                    <span class="text-sm text-govblue font-medium">Your connection is secure. Details are not permanently saved.</span>
-                </div>
-
-                <!-- The Form -->
-                <div class="p-6 md:p-8">
-                    <form id="wopForm" class="space-y-6">
+    <!-- Hero Section -->
+    <main class="flex-grow">
+        <div class="relative bg-white overflow-hidden">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-24 lg:pt-24 lg:pb-32">
+                <div class="text-center max-w-3xl mx-auto">
+                    
+                    <span class="inline-block py-1 px-3 rounded-full bg-blue-50 text-brandblue text-xs font-semibold tracking-wide uppercase mb-6 border border-blue-100">
+                        Official Digital Service
+                    </span>
+                    
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-govblue tracking-tight mb-6">
+                        Verify Your Widows' & Orphans' Pension Eligibility
+                    </h2>
+                    
+                    <p class="text-lg text-gray-600 mb-10 leading-relaxed">
+                        A fast, secure, and automated way for public officers to determine their eligibility for the W&OP scheme. Ensure your details are ready before proceeding to the verification tool.
+                    </p>
+                    
+                    <!-- THE MAIN ACCESS CTA -->
+                    <div class="flex flex-col sm:flex-row justify-center gap-4">
+                        <!-- REPLACE the href below with the actual route to your React App -->
+                        <a href="/app" class="bg-brandblue hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-3 text-lg">
+                            Launch Eligibility Checker <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                        </a>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                            
-                            <!-- NIC Input with Validation State -->
-                            <div class="col-span-1 md:col-span-2">
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">National Identity Card (NIC) <span class="text-red-500">*</span></label>
-                                <p class="text-xs text-gray-500 mb-2">Enter 9 digits + V/X, or the new 12-digit format.</p>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <i class="fa-regular fa-id-card text-gray-400"></i>
-                                    </div>
-                                    <input type="text" placeholder="e.g. 198512345678 or 851234567V" class="w-full pl-11 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-govblue focus:border-govblue uppercase transition-all font-mono">
-                                </div>
-                            </div>
+                        <a href="#how-it-works" class="bg-white hover:bg-gray-50 text-gray-700 font-semibold py-4 px-8 rounded-xl shadow-sm border border-gray-200 transition-all duration-200 flex items-center justify-center gap-2">
+                            View Instructions
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                            <!-- Gender / Civil Status -->
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Gender <span class="text-red-500">*</span></label>
-                                <select class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-govblue focus:border-govblue bg-white transition-all">
-                                    <option value="" disabled selected>Select Gender</option>
-                                    <option value="male">Male</option>
-                                    <option value="female">Female</option>
-                                </select>
-                            </div>
+        <!-- How It Works / Value Prop Section -->
+        <div id="how-it-works" class="bg-surface py-16 lg:py-24 border-t border-gray-100">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                
+                <div class="text-center mb-16">
+                    <h3 class="text-2xl font-bold text-gray-900">Before You Begin</h3>
+                    <p class="text-gray-500 mt-2">What you need to know before accessing the tool.</p>
+                </div>
 
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Civil Status <span class="text-red-500">*</span></label>
-                                <select class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-govblue focus:border-govblue bg-white transition-all">
-                                    <option value="" disabled selected>Select Status</option>
-                                    <option value="single">Single</option>
-                                    <option value="married">Married</option>
-                                    <option value="widowed">Widowed / Divorced</option>
-                                </select>
-                            </div>
-
-                            <!-- Date of Appointment -->
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Date of First Appointment <span class="text-red-500">*</span></label>
-                                <div class="relative mt-2">
-                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <i class="fa-regular fa-calendar-check text-gray-400"></i>
-                                    </div>
-                                    <input type="date" class="w-full pl-11 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-govblue focus:border-govblue transition-all">
-                                </div>
-                            </div>
-
-                            <!-- Employment Type -->
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Nature of Appointment <span class="text-red-500">*</span></label>
-                                <div class="relative mt-2">
-                                    <select class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-govblue focus:border-govblue bg-white transition-all">
-                                        <option value="" disabled selected>Select Appointment Type</option>
-                                        <option value="permanent">Permanent & Pensionable</option>
-                                        <option value="casual">Casual / Contract</option>
-                                        <option value="probation">Probationary</option>
-                                    </select>
-                                </div>
-                            </div>
-
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    
+                    <!-- Card 1 -->
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                        <div class="w-12 h-12 bg-blue-50 text-brandblue rounded-xl flex items-center justify-center text-xl mb-6">
+                            <i class="fa-regular fa-id-card"></i>
                         </div>
+                        <h4 class="text-lg font-bold text-gray-900 mb-2">1. Have Your Details Ready</h4>
+                        <p class="text-sm text-gray-600 leading-relaxed">
+                            You will need your National Identity Card (NIC) number, Date of Birth, and the exact Date of your First Appointment to the public service.
+                        </p>
+                    </div>
 
-                        <!-- Action Bar -->
-                        <div class="pt-6 border-t border-gray-200 mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-                            <button type="reset" class="text-gray-500 hover:text-gray-700 font-medium text-sm transition-colors w-full sm:w-auto text-left">
-                                Clear Details
-                            </button>
-                            <button type="button" id="checkBtn" onclick="runEligibilityCheck()" class="w-full sm:w-auto bg-govblue hover:bg-blue-900 text-white font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
-                                Verify Eligibility <i class="fa-solid fa-arrow-right"></i>
-                            </button>
+                    <!-- Card 2 -->
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                        <div class="w-12 h-12 bg-blue-50 text-brandblue rounded-xl flex items-center justify-center text-xl mb-6">
+                            <i class="fa-solid fa-bolt"></i>
                         </div>
-                    </form>
+                        <h4 class="text-lg font-bold text-gray-900 mb-2">2. Instant Verification</h4>
+                        <p class="text-sm text-gray-600 leading-relaxed">
+                            The system will instantly calculate your eligibility status based on current W&OP regulations without requiring a manual visit to the department.
+                        </p>
+                    </div>
 
-                    <!-- Mock Result Component (Hidden) -->
-                    <div id="resultCard" class="hidden mt-6 p-6 rounded-lg border-2">
-                        <div class="flex items-start gap-4">
-                            <div id="resultIcon" class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-xl text-white shadow-md"></div>
-                            <div>
-                                <h3 id="resultTitle" class="text-xl font-bold"></h3>
-                                <p id="resultDesc" class="mt-2 text-sm text-gray-700 leading-relaxed"></p>
-                                
-                                <!-- Next Step Action -->
-                                <div id="nextStepBox" class="mt-5 hidden">
-                                    <button class="bg-gray-900 text-white text-sm font-medium py-2.5 px-6 rounded-md hover:bg-gray-800 transition-colors">
-                                        Download Form WOP/1
-                                    </button>
-                                </div>
-                            </div>
+                    <!-- Card 3 -->
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                        <div class="w-12 h-12 bg-blue-50 text-brandblue rounded-xl flex items-center justify-center text-xl mb-6">
+                            <i class="fa-solid fa-file-arrow-down"></i>
                         </div>
+                        <h4 class="text-lg font-bold text-gray-900 mb-2">3. Next Steps</h4>
+                        <p class="text-sm text-gray-600 leading-relaxed">
+                            If eligible, you will be guided on how to proceed with formal registration and which specific departmental forms you need to submit.
+                        </p>
                     </div>
 
                 </div>
             </div>
-            
-            <!-- Quick Help Section -->
-            <div class="mt-8 flex flex-col md:flex-row gap-6">
-                <div class="flex-1 bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-start gap-4">
-                    <div class="bg-orange-50 p-3 rounded-lg text-govgold">
-                        <i class="fa-solid fa-phone-volume text-xl"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-gray-900 text-sm">Need Help?</h4>
-                        <p class="text-xs text-gray-500 mt-1">Call the Pensions Department Hotline on <strong>1939</strong> for assistance with your registration.</p>
-                    </div>
-                </div>
-            </div>
-
         </div>
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-900 text-gray-400 py-8">
-        <div class="max-w-4xl mx-auto px-4 text-center">
-            <p class="text-sm">&copy; 2026 Department of Pensions. All Rights Reserved.</p>
-            <p class="text-xs mt-2 opacity-60">This system provides preliminary eligibility checking based on the WOP Ordinance. Final approval is subject to manual verification of documents.</p>
+    <footer class="bg-govblue text-gray-400 py-10 border-t border-gray-800">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="w-10 h-10 bg-gray-800 text-gray-500 rounded-md flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-landmark"></i>
+            </div>
+            <p class="text-sm font-medium text-gray-300">W&OP Division, Department of Pensions</p>
+            <p class="text-xs mt-2 opacity-75 max-w-xl mx-auto">
+                This landing page directs users to the preliminary eligibility checker. All official registrations must comply with the standard public service regulations.
+            </p>
         </div>
     </footer>
 
-    <!-- Interactive Logic -->
-    <script>
-        function runEligibilityCheck() {
-            const btn = document.getElementById('checkBtn');
-            const form = document.getElementById('wopForm');
-            const resultCard = document.getElementById('resultCard');
-            const resultIcon = document.getElementById('resultIcon');
-            const resultTitle = document.getElementById('resultTitle');
-            const resultDesc = document.getElementById('resultDesc');
-            const nextStepBox = document.getElementById('nextStepBox');
-            
-            // Loading State
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verifying Database...';
-            btn.classList.add('opacity-80', 'cursor-not-allowed');
-            
-            // Simulate API Call
-            setTimeout(() => {
-                // Hide form, show result (Example: Eligible State)
-                form.classList.add('hidden');
-                resultCard.classList.remove('hidden');
-                
-                // Style for Success
-                resultCard.classList.add('border-green-500', 'bg-green-50');
-                resultIcon.classList.add('bg-green-600');
-                resultIcon.innerHTML = '<i class="fa-solid fa-check"></i>';
-                
-                resultTitle.classList.add('text-green-800');
-                resultTitle.innerText = 'Eligibility Confirmed';
-                resultDesc.innerHTML = 'Based on your appointment type and dates, you are eligible to register as a contributor to the WOP scheme. You must register within <strong>3 months</strong> of your appointment date to avoid arrears.';
-                
-                nextStepBox.classList.remove('hidden');
-                
-            }, 1200);
-        }
-    </script>
 </body>
 </html>
