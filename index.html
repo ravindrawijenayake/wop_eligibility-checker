@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<<<<<<< HEAD
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>W&OP Eligibility Portal</title>
@@ -24,150 +23,7 @@
       }
     }
   </script>
-=======
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>W&OP Eligibility Portal</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: {
-                        govblue: '#0f172a', // Deep slate/blue for authority
-                        brandblue: '#2563eb', // Action color
-                        surface: '#f8fafc',
-                    }
-                }
-            }
-        }
-    </script>
->>>>>>> 9c51898529bc2a01e8347bb5437b9b0dfd358060
 </head>
-<body class="bg-surface min-h-screen flex flex-col font-sans text-gray-800 antialiased selection:bg-brandblue selection:text-white">
-
-    <!-- Minimal Header -->
-    <header class="bg-white border-b border-gray-200">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-govblue text-white rounded-md flex items-center justify-center shadow-sm">
-                    <i class="fa-solid fa-landmark"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold text-lg text-gray-900 leading-none">W&OP Portal</h1>
-                    <p class="text-xs text-gray-500 font-medium mt-1">Department of Pensions</p>
-                </div>
-            </div>
-            <!-- Optional Top Links -->
-            <div class="hidden sm:flex gap-6 text-sm font-medium text-gray-600">
-                <a href="#" class="hover:text-brandblue transition-colors">About W&OP</a>
-                <a href="#" class="hover:text-brandblue transition-colors">Guidelines</a>
-                <a href="#" class="hover:text-brandblue transition-colors">Contact</a>
-            </div>
-        </div>
-    </header>
-
-    <!-- Hero Section -->
-    <main class="flex-grow">
-        <div class="relative bg-white overflow-hidden">
-            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-24 lg:pt-24 lg:pb-32">
-                <div class="text-center max-w-3xl mx-auto">
-                    
-                    <span class="inline-block py-1 px-3 rounded-full bg-blue-50 text-brandblue text-xs font-semibold tracking-wide uppercase mb-6 border border-blue-100">
-                        Official Digital Service
-                    </span>
-                    
-                    <h2 class="text-4xl md:text-5xl font-extrabold text-govblue tracking-tight mb-6">
-                        Verify Your Widows' & Orphans' Pension Eligibility
-                    </h2>
-                    
-                    <p class="text-lg text-gray-600 mb-10 leading-relaxed">
-                        A fast, secure, and automated way for public officers to determine their eligibility for the W&OP scheme. Ensure your details are ready before proceeding to the verification tool.
-                    </p>
-                    
-                    <!-- THE MAIN ACCESS CTA -->
-                    <div class="flex flex-col sm:flex-row justify-center gap-4">
-                        <!-- REPLACE the href below with the actual route to your React App -->
-                        <a href="/app" class="bg-brandblue hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-3 text-lg">
-                            Launch Eligibility Checker <i class="fa-solid fa-arrow-right-to-bracket"></i>
-                        </a>
-                        
-                        <a href="#how-it-works" class="bg-white hover:bg-gray-50 text-gray-700 font-semibold py-4 px-8 rounded-xl shadow-sm border border-gray-200 transition-all duration-200 flex items-center justify-center gap-2">
-                            View Instructions
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- How It Works / Value Prop Section -->
-        <div id="how-it-works" class="bg-surface py-16 lg:py-24 border-t border-gray-100">
-            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                
-                <div class="text-center mb-16">
-                    <h3 class="text-2xl font-bold text-gray-900">Before You Begin</h3>
-                    <p class="text-gray-500 mt-2">What you need to know before accessing the tool.</p>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    
-                    <!-- Card 1 -->
-                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                        <div class="w-12 h-12 bg-blue-50 text-brandblue rounded-xl flex items-center justify-center text-xl mb-6">
-                            <i class="fa-regular fa-id-card"></i>
-                        </div>
-                        <h4 class="text-lg font-bold text-gray-900 mb-2">1. Have Your Details Ready</h4>
-                        <p class="text-sm text-gray-600 leading-relaxed">
-                            You will need your National Identity Card (NIC) number, Date of Birth, and the exact Date of your First Appointment to the public service.
-                        </p>
-                    </div>
-
-                    <!-- Card 2 -->
-                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                        <div class="w-12 h-12 bg-blue-50 text-brandblue rounded-xl flex items-center justify-center text-xl mb-6">
-                            <i class="fa-solid fa-bolt"></i>
-                        </div>
-                        <h4 class="text-lg font-bold text-gray-900 mb-2">2. Instant Verification</h4>
-                        <p class="text-sm text-gray-600 leading-relaxed">
-                            The system will instantly calculate your eligibility status based on current W&OP regulations without requiring a manual visit to the department.
-                        </p>
-                    </div>
-
-                    <!-- Card 3 -->
-                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                        <div class="w-12 h-12 bg-blue-50 text-brandblue rounded-xl flex items-center justify-center text-xl mb-6">
-                            <i class="fa-solid fa-file-arrow-down"></i>
-                        </div>
-                        <h4 class="text-lg font-bold text-gray-900 mb-2">3. Next Steps</h4>
-                        <p class="text-sm text-gray-600 leading-relaxed">
-                            If eligible, you will be guided on how to proceed with formal registration and which specific departmental forms you need to submit.
-                        </p>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-govblue text-gray-400 py-10 border-t border-gray-800">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div class="w-10 h-10 bg-gray-800 text-gray-500 rounded-md flex items-center justify-center mx-auto mb-4">
-                <i class="fa-solid fa-landmark"></i>
-            </div>
-            <p class="text-sm font-medium text-gray-300">W&OP Division, Department of Pensions</p>
-            <p class="text-xs mt-2 opacity-75 max-w-xl mx-auto">
-                This landing page directs users to the preliminary eligibility checker. All official registrations must comply with the standard public service regulations.
-            </p>
-        </div>
-    </footer>
-
-<<<<<<< HEAD
 <body
   class="bg-surface min-h-screen flex flex-col font-sans text-gray-800 antialiased selection:bg-brandblue selection:text-white">
 
@@ -301,7 +157,5 @@
     </div>
   </footer>
 
-=======
->>>>>>> 9c51898529bc2a01e8347bb5437b9b0dfd358060
 </body>
 </html>
