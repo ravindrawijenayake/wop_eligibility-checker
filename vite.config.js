@@ -7,5 +7,13 @@ export default defineConfig({
   base: '/wop_eligibility-checker/',
   server: {
     port: 5175
-  }
+  },
+  build: {
+    rollupOptions: {
+      input: {
+        main: './index.html',
+        app: './app.html',
+      },
+    },
+  },
 })
